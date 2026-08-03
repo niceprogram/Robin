@@ -9,6 +9,10 @@
 -- shared hosting accounts usually aren't allowed to create databases.
 -- =================================================================
 
+-- Ensures accented characters (e.g. "Op één been staan") import correctly
+-- regardless of the client/tool used to run this file.
+SET NAMES utf8mb4;
+
 -- -----------------------------------------------------------------
 -- tournament_players
 -- -----------------------------------------------------------------
