@@ -17,6 +17,7 @@ $data = [
     'can_start_next_round'   => false,
     'players'                => getAllPlayers($pdo),
     'active_player_count'    => count(getActivePlayers($pdo)),
+    'stations'               => getAllStations($pdo),
     'total_rounds'           => null,
     'estimated_seconds_left' => null,
     'round_duration_seconds' => (int)getSetting($pdo, 'round_duration_seconds', DEFAULT_ROUND_SECONDS),
