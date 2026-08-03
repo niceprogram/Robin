@@ -2,6 +2,8 @@ let allMatchesCache = [];
 let roundDurationSeconds = 420;
 let renamingPlayerId = null;
 let lastPlayersCache = [];
+let renamingStationId = null;
+let lastStationsCache = [];
 
 function fmtTime(sec) {
     sec = Math.max(0, Math.round(sec));
@@ -261,6 +263,90 @@ async function addParticipant() {
     refresh();
 }
 
+function renderStations(stations) {
+    lastStationsCache = stations;
+    const box = document.getElementById('stationList');
+    box.innerHTML = stations.map(s => {
+        if (renamingStationId === s.id) {
+            return `
+                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary py-1 gap-2">
+                    <input type="text" id="renameStationInput_${s.id}" class="form-control form-control-sm"
+                           value="${s.name.replace(/"/g, '&quot;')}" autofocus>
+                    <button class="btn btn-success btn-sm" onclick="saveStationRename(${s.id})">✔</button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="cancelStationRename()">✕</button>
+                </div>
+            `;
+        }
+        return `
+        <div class="d-flex justify-content-between align-items-center border-bottom border-secondary py-1">
+            <span class="${s.active == 0 ? 'text-secondary text-decoration-line-through' : ''}">${s.name}</span>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-light btn-sm" onclick="startStationRename(${s.id})" title="Naam wijzigen">✏️</button>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" ${s.active == 1 ? 'checked' : ''}
+                           onchange="toggleStation(${s.id}, this.checked)">
+                </div>
+            </div>
+        </div>
+        `;
+    }).join('');
+
+    if (renamingStationId !== null) {
+        const input = document.getElementById(`renameStationInput_${renamingStationId}`);
+        if (input) {
+            input.focus();
+            input.select();
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') saveStationRename(renamingStationId);
+                if (e.key === 'Escape') cancelStationRename();
+            });
+        }
+    }
+}
+
+function startStationRename(id) {
+    renamingStationId = id;
+    renderStations(lastStationsCache);
+}
+
+function cancelStationRename() {
+    renamingStationId = null;
+    renderStations(lastStationsCache);
+}
+
+async function saveStationRename(id) {
+    const input = document.getElementById(`renameStationInput_${id}`);
+    const name = input ? input.value.trim() : '';
+    if (!name) {
+        showAlert('Naam mag niet leeg zijn.');
+        return;
+    }
+    const out = await apiPost('api/rename_station.php', { station_id: id, name });
+    renamingStationId = null;
+    if (!out.success) {
+        showAlert(out.error || 'Kon naam niet wijzigen.');
+    }
+    refresh();
+}
+
+async function toggleStation(id, active) {
+    await apiPost('api/toggle_station.php', { station_id: id, active: active ? 1 : 0 });
+    refresh();
+}
+
+async function addStation() {
+    const input = document.getElementById('newStationName');
+    const name = input.value.trim();
+    if (!name) return;
+    const out = await apiPost('api/add_station.php', { name });
+    if (!out.success) {
+        showAlert(out.error || 'Kon spel niet toevoegen.');
+        return;
+    }
+    input.value = '';
+    refresh();
+}
+
 async function refresh() {
     try {
         const res = await fetch('api/get_admin_data.php', { cache: 'no-store' });
@@ -272,6 +358,11 @@ async function refresh() {
             renderParticipants(data.players);
         } else {
             lastPlayersCache = data.players;
+        }
+        if (renamingStationId === null) {
+            renderStations(data.stations);
+        } else {
+            lastStationsCache = data.stations;
         }
     } catch (e) {
         console.error('Admin refresh failed', e);
@@ -295,6 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
         refresh();
     });
     document.getElementById('btnAddParticipant').addEventListener('click', addParticipant);
+    document.getElementById('btnAddStation').addEventListener('click', addStation);
 
     document.getElementById('btnSaveTotalRounds').addEventListener('click', async () => {
         const val = parseInt(document.getElementById('totalRoundsInput').value, 10);
@@ -336,12 +428,10 @@ document.addEventListener('DOMContentLoaded', () => {
         btnConfirmReset.disabled = resetConfirmText.value.trim().toUpperCase() !== 'RESET';
     });
     btnConfirmReset.addEventListener('click', async () => {
-        const clearPlayers = document.getElementById('resetClearPlayers').checked;
-        const out = await apiPost('api/reset_tournament.php', { confirm: true, clear_players: clearPlayers });
+        const out = await apiPost('api/reset_tournament.php', { confirm: true });
         bootstrap.Modal.getInstance(document.getElementById('resetModal')).hide();
         resetConfirmText.value = '';
         btnConfirmReset.disabled = true;
-        document.getElementById('resetClearPlayers').checked = false;
         if (!out.success) {
             showAlert(out.error || 'Reset mislukt.');
         } else {
