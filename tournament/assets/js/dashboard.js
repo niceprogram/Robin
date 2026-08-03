@@ -1,14 +1,14 @@
 const STATION_EMOJI = {
-    'Air Hockey': '🏒',
+    'Airhockey': '🏒',
     'Darts': '🎯',
     'Uno': '🃏',
-    'Arm Wrestling': '💪',
-    'Car Race': '🏎️',
-    'Checkers': '⚫',
-    'Table Tennis': '🏓',
-    'Stand on One Leg': '🦩',
-    'Ping Pong Cups': '🥤',
-    'Mini Golf': '⛳',
+    'Armworstelen': '💪',
+    'Autoracen': '🏎️',
+    'Dammen': '⚫',
+    'Tafeltennis': '🏓',
+    'Op één been staan': '🦩',
+    'Pingpongbekers': '🥤',
+    'Minigolf': '⛳',
 };
 
 let localRemaining = null;
@@ -56,11 +56,11 @@ function startLocalTicking() {
 
 function resultBadge(type) {
     switch (type) {
-        case 'win_a': return '<span class="badge bg-success match-result-badge">Decided</span>';
-        case 'win_b': return '<span class="badge bg-success match-result-badge">Decided</span>';
-        case 'draw':  return '<span class="badge bg-info match-result-badge">Draw</span>';
-        case 'fault': return '<span class="badge bg-secondary match-result-badge">Faulty game</span>';
-        default:      return '<span class="badge bg-warning text-dark match-result-badge">Playing…</span>';
+        case 'win_a': return '<span class="badge bg-success match-result-badge">Klaar</span>';
+        case 'win_b': return '<span class="badge bg-success match-result-badge">Klaar</span>';
+        case 'draw':  return '<span class="badge bg-info match-result-badge">Gelijkspel</span>';
+        case 'fault': return '<span class="badge bg-secondary match-result-badge">Ongeldig spel</span>';
+        default:      return '<span class="badge bg-warning text-dark match-result-badge">Bezig…</span>';
     }
 }
 
@@ -68,7 +68,7 @@ function renderMatches(matches) {
     currentMatchesCache = matches;
     const container = document.getElementById('matchesContainer');
     if (!matches.length) {
-        container.innerHTML = '<p class="text-secondary fs-4">No matches yet — waiting for the next round.</p>';
+        container.innerHTML = '<p class="text-secondary fs-4">Nog geen wedstrijden — wachten op de volgende ronde.</p>';
         return;
     }
     container.innerHTML = matches.map(m => {
@@ -84,8 +84,8 @@ function renderMatches(matches) {
                         ${resultBadge(m.result_type)}
                     </div>
                     <div class="match-players">${m.player_a_name}<span class="match-vs">vs</span>${m.player_b_name}</div>
-                    <div class="match-judge"><span class="badge">Judge</span> ${m.judge_name}</div>
-                    ${pending ? '<div class="tap-hint-card">👉 Tap to enter result</div>' : ''}
+                    <div class="match-judge"><span class="badge">Jury</span> ${m.judge_name}</div>
+                    ${pending ? '<div class="tap-hint-card">👉 Tik om de uitslag in te voeren</div>' : ''}
                 </div>
             </div>
         `;
@@ -100,7 +100,7 @@ function renderIdle(idlePlayers) {
     }
     box.innerHTML = `
         <div class="idle-list mt-3">
-            <div class="section-title">Resting this round</div>
+            <div class="section-title">Rust deze ronde</div>
             ${idlePlayers.map(p => `<span class="pill">${p.name}</span>`).join('')}
         </div>
     `;
@@ -126,11 +126,11 @@ function renderPreview(preview) {
     }
     const rows = preview.matches.map(m => {
         const emoji = STATION_EMOJI[m.station_name] || '🎮';
-        return `<div class="pill">${emoji} ${m.player_a_name} vs ${m.player_b_name} <small>(judge: ${m.judge_name})</small></div>`;
+        return `<div class="pill">${emoji} ${m.player_a_name} vs ${m.player_b_name} <small>(jury: ${m.judge_name})</small></div>`;
     }).join('');
     box.innerHTML = `
         <div class="preview-list mt-3">
-            <div class="section-title">Next round preview</div>
+            <div class="section-title">Voorproefje volgende ronde</div>
             ${rows || '<span class="text-secondary">—</span>'}
         </div>
     `;
@@ -141,22 +141,22 @@ function renderProgress(data) {
     const estimateEl = document.getElementById('timeLeftEstimate');
 
     if (data.total_rounds && data.round) {
-        progressEl.textContent = `Round ${data.round.round_number} of ${data.total_rounds}`;
+        progressEl.textContent = `Ronde ${data.round.round_number} van ${data.total_rounds}`;
     } else if (data.total_rounds && !data.round) {
-        progressEl.textContent = `0 of ${data.total_rounds} rounds`;
+        progressEl.textContent = `0 van ${data.total_rounds} rondes`;
     } else {
         progressEl.textContent = '';
     }
 
     if (data.estimated_seconds_left !== null && data.estimated_seconds_left !== undefined) {
         const mins = Math.round(data.estimated_seconds_left / 60);
-        estimateEl.textContent = mins <= 0 ? 'Almost done!' : `~${mins} minute${mins === 1 ? '' : 's'} of play left`;
+        estimateEl.textContent = mins <= 0 ? 'Bijna klaar!' : `~${mins} minu${mins === 1 ? 'ut' : 'ten'} speeltijd over`;
     } else {
         estimateEl.textContent = '';
     }
 }
 
-/* ---------------- Result-entry overlay ---------------- */
+/* ---------------- Scoreformulier (overlay) ---------------- */
 
 function openResultOverlay(matchId) {
     const match = currentMatchesCache.find(m => m.id === matchId);
@@ -166,20 +166,20 @@ function openResultOverlay(matchId) {
     const emoji = STATION_EMOJI[match.station_name] || '🎮';
     const content = document.getElementById('resultOverlayContent');
     content.innerHTML = `
-        <button class="btn btn-outline-light btn-sm overlay-back" onclick="closeResultOverlay()">← Back</button>
+        <button class="btn btn-outline-light btn-sm overlay-back" onclick="closeResultOverlay()">← Terug</button>
         <div class="result-station-title">${emoji} ${match.station_name}</div>
         <div class="result-players">${match.player_a_name} <span class="match-vs">vs</span> ${match.player_b_name}</div>
-        <div class="result-judge mb-4">Judge: ${match.judge_name}</div>
+        <div class="result-judge mb-4">Jury: ${match.judge_name}</div>
         <div class="d-grid gap-3">
             <button class="btn btn-primary result-big-btn" onclick="chooseResult(${match.id}, 'win_a')">
-                🏆 ${match.player_a_name} won
+                🏆 ${match.player_a_name} heeft gewonnen
             </button>
             <button class="btn btn-primary result-big-btn" onclick="chooseResult(${match.id}, 'win_b')">
-                🏆 ${match.player_b_name} won
+                🏆 ${match.player_b_name} heeft gewonnen
             </button>
             <div class="d-flex gap-3">
-                <button class="btn btn-outline-info result-small-btn flex-fill" onclick="chooseResult(${match.id}, 'draw')">🤝 Draw</button>
-                <button class="btn btn-outline-secondary result-small-btn flex-fill" onclick="chooseResult(${match.id}, 'fault')">⚠️ Faulty game</button>
+                <button class="btn btn-outline-info result-small-btn flex-fill" onclick="chooseResult(${match.id}, 'draw')">🤝 Gelijkspel</button>
+                <button class="btn btn-outline-secondary result-small-btn flex-fill" onclick="chooseResult(${match.id}, 'fault')">⚠️ Ongeldig spel</button>
             </div>
         </div>
     `;
@@ -193,7 +193,7 @@ function closeResultOverlay() {
 
 async function chooseResult(matchId, result) {
     const content = document.getElementById('resultOverlayContent');
-    content.innerHTML = `<div class="thank-you-screen">⏳ Saving…</div>`;
+    content.innerHTML = `<div class="thank-you-screen">⏳ Bezig met opslaan…</div>`;
 
     try {
         const res = await fetch('api/submit_result.php', {
@@ -204,12 +204,12 @@ async function chooseResult(matchId, result) {
         const out = await res.json();
 
         if (out.success) {
-            content.innerHTML = `<div class="thank-you-screen">✅ Thank you!</div>`;
+            content.innerHTML = `<div class="thank-you-screen">✅ Bedankt!</div>`;
         } else {
-            content.innerHTML = `<div class="thank-you-screen thank-you-error">⚠️ ${out.error || 'Could not save result.'}</div>`;
+            content.innerHTML = `<div class="thank-you-screen thank-you-error">⚠️ ${out.error || 'Kon uitslag niet opslaan.'}</div>`;
         }
     } catch (e) {
-        content.innerHTML = `<div class="thank-you-screen thank-you-error">⚠️ Connection problem — try again.</div>`;
+        content.innerHTML = `<div class="thank-you-screen thank-you-error">⚠️ Verbindingsprobleem — probeer opnieuw.</div>`;
     }
 
     setTimeout(() => {
@@ -224,16 +224,16 @@ async function refresh() {
         const data = await res.json();
 
         document.getElementById('statusBanner').textContent =
-            data.tournament_status === 'not_started' ? 'Waiting for the tournament to start…' :
-            data.tournament_status === 'running' ? '' : 'Tournament complete!';
+            data.tournament_status === 'not_started' ? 'Wachten tot het toernooi begint…' :
+            data.tournament_status === 'running' ? '' : 'Toernooi afgelopen!';
 
         if (data.round) {
-            document.getElementById('roundNumber').textContent = 'Round ' + data.round.round_number;
+            document.getElementById('roundNumber').textContent = 'Ronde ' + data.round.round_number;
             localRemaining = data.round.remaining_seconds;
             localDuration = data.round.duration_seconds;
             localStatus = data.round.status;
         } else {
-            document.getElementById('roundNumber').textContent = data.tournament_status === 'not_started' ? 'Not started' : '—';
+            document.getElementById('roundNumber').textContent = data.tournament_status === 'not_started' ? 'Niet gestart' : '—';
             localRemaining = null;
             localStatus = 'paused';
         }
