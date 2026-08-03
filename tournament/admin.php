@@ -37,6 +37,13 @@ function assetVer(string $relPath): string {
                 </button>
             </div>
         </div>
+        <div class="row g-2 align-items-center mt-2">
+            <div class="col-md-3">
+                <button class="btn btn-outline-light w-100" data-bs-toggle="modal" data-bs-target="#stationsModal">
+                    🎮 Spellen beheren
+                </button>
+            </div>
+        </div>
         <div class="row mt-3">
             <div class="col-md-3">Status: <strong id="tournamentStatusLabel">—</strong></div>
             <div class="col-md-3" id="roundLabel">Geen ronde actief</div>
@@ -135,6 +142,29 @@ function assetVer(string $relPath): string {
   </div>
 </div>
 
+<!-- Spellen beheren -->
+<div class="modal fade" id="stationsModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content bg-dark text-light">
+      <div class="modal-header">
+        <h5 class="modal-title">Spellen beheren</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group mb-3">
+            <input type="text" id="newStationName" class="form-control" placeholder="Naam nieuw spel">
+            <button class="btn btn-success" id="btnAddStation">Toevoegen</button>
+        </div>
+        <p class="text-secondary small">
+            Een spel uitzetten sluit dat station uit van volgende rondes. Er is minstens 1 actief
+            spel nodig om een ronde te kunnen starten.
+        </p>
+        <div id="stationList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Toernooi resetten -->
 <div class="modal fade" id="resetModal" tabindex="-1">
   <div class="modal-dialog">
@@ -146,14 +176,9 @@ function assetVer(string $relPath): string {
       <div class="modal-body">
         <p>
             Dit wist <strong>alle rondes, wedstrijden en uitslagen</strong>. Iedereen begint weer op nul.
+            <br>De deelnemerslijst (namen) blijft ongewijzigd.
             <br><strong>Dit kan niet ongedaan worden gemaakt.</strong>
         </p>
-        <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" id="resetClearPlayers">
-            <label class="form-check-label" for="resetClearPlayers">
-                Ook alle deelnemers verwijderen (voor een compleet nieuwe naamlijst)
-            </label>
-        </div>
         <p class="mb-1">Typ <strong>RESET</strong> hieronder om te bevestigen:</p>
         <input type="text" id="resetConfirmText" class="form-control mb-3" placeholder="RESET">
         <button class="btn btn-danger w-100" id="btnConfirmReset" disabled>Toernooi definitief resetten</button>
