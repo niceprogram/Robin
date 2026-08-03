@@ -1,0 +1,285 @@
+:root {
+    --tourney-blue: #2563eb;
+    --tourney-green: #16a34a;
+    --tourney-yellow: #f59e0b;
+    --tourney-red: #dc2626;
+    --tourney-purple: #7c3aed;
+    --card-radius: 1.1rem;
+}
+
+body {
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    color: #f1f5f9;
+    font-family: 'Segoe UI', Verdana, Arial, sans-serif;
+}
+
+.card {
+    border: none;
+    border-radius: var(--card-radius);
+}
+
+/* ---------------- Dashboard (TV) ---------------- */
+
+.tv-header {
+    padding: 1.2rem 2rem;
+    background: rgba(15, 23, 42, 0.85);
+    border-bottom: 4px solid var(--tourney-blue);
+}
+
+.tv-title {
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.round-badge {
+    font-size: 1.6rem;
+    font-weight: 700;
+    background: var(--tourney-blue);
+    border-radius: 2rem;
+    padding: 0.4rem 1.4rem;
+}
+
+.progress-sub {
+    font-size: 1rem;
+    color: #93c5fd;
+    margin-top: 0.3rem;
+}
+
+.time-left-estimate {
+    font-size: 1.3rem;
+    color: #94a3b8;
+    margin-top: 0.3rem;
+}
+
+.tap-hint {
+    font-size: 0.9rem;
+    color: #64748b;
+    text-transform: none;
+    letter-spacing: normal;
+    font-weight: 400;
+}
+
+.timer-display {
+    font-size: 7rem;
+    font-weight: 900;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 25px rgba(0,0,0,0.4);
+}
+
+.timer-display.timer-ok      { color: #4ade80; }
+.timer-display.timer-warning { color: #facc15; }
+.timer-display.timer-danger  { color: #f87171; animation: pulse 1s infinite; }
+.timer-display.timer-paused  { color: #94a3b8; }
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+}
+
+.match-card {
+    background: #1e293b;
+    border-radius: var(--card-radius);
+    border: 3px solid #334155;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.match-card.repeat-flag {
+    border-color: var(--tourney-purple);
+}
+
+.match-card-clickable {
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.match-card-clickable:hover,
+.match-card-clickable:active {
+    border-color: var(--tourney-green);
+    transform: scale(1.02);
+}
+
+.tap-hint-card {
+    margin-top: 0.6rem;
+    font-size: 0.95rem;
+    color: #4ade80;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* ---------------- Result-entry overlay (tap a match to score it) ---------------- */
+
+.result-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 12, 24, 0.97);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.result-overlay-content {
+    width: 100%;
+    max-width: 720px;
+    text-align: center;
+    position: relative;
+}
+
+.overlay-back {
+    position: absolute;
+    top: -3.5rem;
+    left: 0;
+}
+
+.result-station-title {
+    font-size: 2.4rem;
+    font-weight: 900;
+    color: #93c5fd;
+    margin-bottom: 0.5rem;
+}
+
+.result-players {
+    font-size: 2.8rem;
+    font-weight: 900;
+    margin-bottom: 0.5rem;
+}
+
+.result-judge {
+    font-size: 1.3rem;
+    color: #cbd5e1;
+}
+
+.result-big-btn {
+    font-size: 1.7rem;
+    font-weight: 800;
+    padding: 1.4rem;
+    border-radius: 1rem;
+}
+
+.result-small-btn {
+    font-size: 1.15rem;
+    font-weight: 700;
+    padding: 0.9rem;
+    border-radius: 0.9rem;
+}
+
+.thank-you-screen {
+    font-size: 3.2rem;
+    font-weight: 900;
+    color: #4ade80;
+}
+
+.thank-you-screen.thank-you-error {
+    color: #f87171;
+    font-size: 1.8rem;
+}
+
+.match-station {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #93c5fd;
+}
+
+.match-station .emoji { font-size: 1.6rem; margin-right: 0.3rem; }
+
+.match-players {
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin: 0.4rem 0;
+}
+
+.match-vs { color: #94a3b8; font-weight: 400; padding: 0 0.4rem; }
+
+.match-judge {
+    font-size: 1.05rem;
+    color: #cbd5e1;
+}
+
+.match-judge .badge { background: var(--tourney-purple); }
+
+.match-result-badge {
+    font-size: 1rem;
+    padding: 0.35rem 0.8rem;
+}
+
+.leaderboard-panel {
+    background: #1e293b;
+    border-radius: var(--card-radius);
+    padding: 1rem 1.2rem;
+    max-height: 78vh;
+    overflow-y: auto;
+}
+
+.leaderboard-panel table { color: #f1f5f9; }
+.leaderboard-panel th { color: #93c5fd; border-bottom: 2px solid #334155 !important; }
+.leaderboard-panel tr:nth-child(1) td { color: #facc15; font-weight: 800; }
+.leaderboard-panel tr:nth-child(2) td { color: #d1d5db; font-weight: 700; }
+.leaderboard-panel tr:nth-child(3) td { color: #f0b27a; font-weight: 700; }
+
+.idle-list, .preview-list {
+    background: #1e293b;
+    border-radius: var(--card-radius);
+    padding: 0.8rem 1.2rem;
+}
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #93c5fd;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.6rem;
+}
+
+.pill {
+    display: inline-block;
+    background: #334155;
+    border-radius: 2rem;
+    padding: 0.3rem 0.9rem;
+    margin: 0.15rem;
+    font-size: 1rem;
+}
+
+/* ---------------- Admin ---------------- */
+
+.admin-body {
+    background: #0f172a;
+}
+
+.admin-match-card {
+    background: #1e293b;
+    border-radius: var(--card-radius);
+    padding: 1.1rem;
+    margin-bottom: 1.1rem;
+}
+
+.big-win-btn {
+    font-size: 1.15rem;
+    font-weight: 700;
+    padding: 1.1rem;
+    border-radius: 0.9rem;
+}
+
+.small-result-btn {
+    font-size: 0.95rem;
+    padding: 0.5rem 0.8rem;
+}
+
+.control-bar {
+    background: #1e293b;
+    border-radius: var(--card-radius);
+    padding: 1rem;
+}
+
+.decided-card { opacity: 0.75; }
+
+/* ---------------- Leaderboard page ---------------- */
+
+.lb-table th { color: #93c5fd; }
+.lb-table tr:nth-child(1) td { color: #facc15; font-weight: 800; }
+.lb-table tr:nth-child(2) td { color: #d1d5db; font-weight: 700; }
+.lb-table tr:nth-child(3) td { color: #f0b27a; font-weight: 700; }
