@@ -6,7 +6,7 @@ $pdo = getPDO();
 
 $status = getSetting($pdo, 'tournament_status', 'not_started');
 if ($status !== 'not_started') {
-    jsonResponse(['success' => false, 'error' => 'The tournament has already been started.'], 400);
+    jsonResponse(['success' => false, 'error' => 'Het toernooi is al gestart.'], 400);
 }
 
 $scheduler = new Scheduler($pdo);
