@@ -361,7 +361,13 @@ function buildOpponentMap(PDO $pdo): array
  */
 function getLeaderboard(PDO $pdo): array
 {
-    $stats = array_values(getPlayerStats($pdo));
+    // Only currently-active participants appear on the leaderboard —
+    // someone toggled off (left early, or removed by mistake) drops off
+    // the board even though their historical match rows still exist.
+    $stats = array_values(array_filter(
+        getPlayerStats($pdo),
+        fn($s) => (int)$s['active'] === 1
+    ));
     usort($stats, function ($a, $b) {
         if ($a['points'] !== $b['points']) return $b['points'] <=> $a['points'];
         if ($a['wins'] !== $b['wins']) return $b['wins'] <=> $a['wins'];
