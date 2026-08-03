@@ -32,12 +32,15 @@ function assetVer(string $relPath): string {
     <div class="fs-4 text-warning" id="statusBanner"></div>
 </div>
 
+<div class="px-4">
+    <div id="idleBox"></div>
+</div>
+
 <div class="container-fluid px-4 pb-4">
     <div class="row">
         <div class="col-lg-8">
             <div class="section-title">Wedstrijden deze ronde <span class="tap-hint">— tik op een wedstrijd om de uitslag in te voeren</span></div>
             <div id="matchesContainer" class="row row-cols-1 row-cols-lg-2 g-3"></div>
-            <div id="idleBox"></div>
             <div id="previewBox"></div>
         </div>
         <div class="col-lg-4">
