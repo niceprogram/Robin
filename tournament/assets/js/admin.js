@@ -347,10 +347,21 @@ async function addStation() {
     refresh();
 }
 
+let refreshRequestId = 0;
+
 async function refresh() {
+    const myRequestId = ++refreshRequestId;
     try {
         const res = await fetch('api/get_admin_data.php', { cache: 'no-store' });
         const data = await res.json();
+
+        // If a newer refresh() was kicked off while this fetch was in
+        // flight, its response will resolve after this one — ignore this
+        // stale response so it can never overwrite the DOM with old data
+        // (this is exactly what caused "Geplande rondes" to visually
+        // revert to an old value right after saving a new one).
+        if (myRequestId !== refreshRequestId) return;
+
         renderControls(data);
         renderMatches(data.matches);
         renderIdle(data.idle_players);
