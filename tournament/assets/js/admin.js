@@ -1,5 +1,7 @@
 let allMatchesCache = [];
 let roundDurationSeconds = 420;
+let renamingPlayerId = null;
+let lastPlayersCache = [];
 
 function fmtTime(sec) {
     sec = Math.max(0, Math.round(sec));
@@ -53,7 +55,7 @@ function renderMatches(matches) {
                 </div>
                 <div class="text-secondary small mb-2">Jury: ${m.judge_name}</div>
                 ${decided ? `
-                    <div class="fs-5 mb-2">${m.player_a_name} vs ${m.player_b_name}</div>
+                    <div class="fs-5 mb-2">${m.player_a_name} tegen ${m.player_b_name}</div>
                     <button class="btn btn-outline-light btn-sm" onclick="openCorrectModal(${m.id})">
                         ✏️ Corrigeren
                     </button>
@@ -90,7 +92,7 @@ function openCorrectModal(matchId) {
     if (!match) return;
     document.getElementById('correctMatchId').value = matchId;
     document.getElementById('correctMatchLabel').textContent =
-        `${match.player_a_name} vs ${match.player_b_name} (${match.station_name})`;
+        `${match.player_a_name} tegen ${match.player_b_name} (${match.station_name})`;
     document.getElementById('correctPlayerAName').textContent = match.player_a_name;
     document.getElementById('correctPlayerBName').textContent = match.player_b_name;
     const modal = new bootstrap.Modal(document.getElementById('correctModal'));
@@ -176,16 +178,69 @@ function renderIdle(idle) {
 }
 
 function renderParticipants(players) {
+    lastPlayersCache = players;
     const box = document.getElementById('participantList');
-    box.innerHTML = players.map(p => `
+    box.innerHTML = players.map(p => {
+        if (renamingPlayerId === p.id) {
+            return `
+                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary py-1 gap-2">
+                    <input type="text" id="renameInput_${p.id}" class="form-control form-control-sm"
+                           value="${p.name.replace(/"/g, '&quot;')}" autofocus>
+                    <button class="btn btn-success btn-sm" onclick="saveRename(${p.id})">✔</button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="cancelRename()">✕</button>
+                </div>
+            `;
+        }
+        return `
         <div class="d-flex justify-content-between align-items-center border-bottom border-secondary py-1">
             <span class="${p.active == 0 ? 'text-secondary text-decoration-line-through' : ''}">${p.name}</span>
-            <div class="form-check form-switch mb-0">
-                <input class="form-check-input" type="checkbox" ${p.active == 1 ? 'checked' : ''}
-                       onchange="toggleParticipant(${p.id}, this.checked)">
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-light btn-sm" onclick="startRename(${p.id})" title="Naam wijzigen">✏️</button>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" ${p.active == 1 ? 'checked' : ''}
+                           onchange="toggleParticipant(${p.id}, this.checked)">
+                </div>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
+
+    if (renamingPlayerId !== null) {
+        const input = document.getElementById(`renameInput_${renamingPlayerId}`);
+        if (input) {
+            input.focus();
+            input.select();
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') saveRename(renamingPlayerId);
+                if (e.key === 'Escape') cancelRename();
+            });
+        }
+    }
+}
+
+function startRename(id) {
+    renamingPlayerId = id;
+    renderParticipants(lastPlayersCache);
+}
+
+function cancelRename() {
+    renamingPlayerId = null;
+    renderParticipants(lastPlayersCache);
+}
+
+async function saveRename(id) {
+    const input = document.getElementById(`renameInput_${id}`);
+    const name = input ? input.value.trim() : '';
+    if (!name) {
+        showAlert('Naam mag niet leeg zijn.');
+        return;
+    }
+    const out = await apiPost('api/rename_participant.php', { player_id: id, name });
+    renamingPlayerId = null;
+    if (!out.success) {
+        showAlert(out.error || 'Kon naam niet wijzigen.');
+    }
+    refresh();
 }
 
 async function toggleParticipant(id, active) {
@@ -213,7 +268,11 @@ async function refresh() {
         renderControls(data);
         renderMatches(data.matches);
         renderIdle(data.idle_players);
-        renderParticipants(data.players);
+        if (renamingPlayerId === null) {
+            renderParticipants(data.players);
+        } else {
+            lastPlayersCache = data.players;
+        }
     } catch (e) {
         console.error('Admin refresh failed', e);
     }
