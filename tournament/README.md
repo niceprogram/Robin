@@ -113,20 +113,31 @@ To wipe an event completely and start everyone back at zero, use
 you have to type `RESET` into a text box before the confirm button even
 becomes clickable, so it can't be triggered by an accidental click.
 
-There's also a checkbox, **"Ook alle deelnemers verwijderen"**
-(also remove all participants):
-
-- **Unchecked** (default): clears every round/match/result and puts the
-  tournament back to "not started," but keeps your existing roster of
-  names — handy if you're running a second tournament with the same
-  group of kids right after the first.
-- **Checked**: also deletes every player, so you can add a completely
-  new set of names for a totally different group.
+A reset clears every round, match, and result — points/wins/losses/judge
+counts all go back to 0, since they're calculated live from match history
+rather than stored separately. **Player names are never touched by a
+reset** — your roster stays exactly as it was, ready for the next
+tournament with the same group.
 
 This is permanent and cannot be undone — there's no "undo reset" button,
 only the typed confirmation before it runs.
 
-## 2c. Dutch interface
+*(Technical note: reset uses `DELETE` rather than `TRUNCATE` under the
+hood, specifically because `TRUNCATE` requires the `DROP` privilege,
+which many shared-hosting MySQL users don't have — `DELETE` only needs
+the `DELETE` privilege, which you always have.)*
+
+## 2c. Managing games/stations
+
+Use **🎮 Spellen beheren** on `admin.php` to add new games, rename
+existing ones (click ✏️), or toggle any game active/inactive — same
+pattern as managing participants. An inactive game is automatically
+excluded from scheduling (the scheduler only ever assigns matches to
+active stations), so you can temporarily take a station out of rotation
+(e.g. it broke, or you don't have room for it this time) without deleting
+it. At least one active game is required to start a round.
+
+## 2d. Dutch interface
 
 Every page (`dashboard.php`, `admin.php`, `leaderboard.php`, `index.php`),
 all on-screen buttons/labels/messages, and the 10 station names are now
@@ -141,6 +152,14 @@ existing station rows to their Dutch equivalents. It's safe to run even
 if you're not sure whether you need it — every statement only touches
 rows that still have the old English name and leaves everything else
 untouched.
+
+**If you see garbled accented characters** (e.g. "Ã©Ã©n" instead of
+"één") anywhere after importing, it means the SQL file was imported
+through a tool/connection that didn't use UTF-8. Both `schema.sql` and
+`migrate_dutch_stations.sql` start with `SET NAMES utf8mb4;` specifically
+to prevent this regardless of import method — re-importing after this
+update should resolve it. phpMyAdmin's Import tab handles this correctly
+by default.
 
 ## 3. Scoring rules (as specified)
 
@@ -289,7 +308,10 @@ tournament/
 │   ├── toggle_participant.php  Activate/deactivate a child
 │   ├── set_total_rounds.php    Set the planned-rounds target
 │   ├── set_round_duration.php  Change round length (mid-tournament OK)
-│   └── reset_tournament.php    Wipe rounds/matches (optionally players)
+│   ├── reset_tournament.php    Wipe rounds/matches (players untouched)
+│   ├── add_station.php         Add a new game/station
+│   ├── rename_station.php      Rename an existing game/station
+│   └── toggle_station.php      Activate/deactivate a game/station
 ├── assets/
 │   ├── css/style.css
 │   └── js/{dashboard,admin,leaderboard}.js
