@@ -107,15 +107,15 @@ INSERT INTO tournament_settings (setting_key, setting_value) VALUES
     ('current_round_id', ''),
     ('round_duration_seconds', '420');
 
--- Default stations, as specified.
+-- Default stations, as specified (Dutch names).
 INSERT INTO tournament_stations (name) VALUES
-    ('Air Hockey'),
+    ('Airhockey'),
     ('Darts'),
     ('Uno'),
-    ('Arm Wrestling'),
-    ('Car Race'),
-    ('Checkers'),
-    ('Table Tennis'),
-    ('Stand on One Leg'),
-    ('Ping Pong Cups'),
-    ('Mini Golf');
+    ('Armworstelen'),
+    ('Autoracen'),
+    ('Dammen'),
+    ('Tafeltennis'),
+    ('Op één been staan'),
+    ('Pingpongbekers'),
+    ('Minigolf');
