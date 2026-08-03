@@ -18,11 +18,9 @@ $pdo = getPDO();
 $rounds = (int)($argv[1] ?? 10);
 
 // Make sure we start fresh for a clean demonstration.
-$pdo->exec('SET FOREIGN_KEY_CHECKS=0');
-$pdo->exec('TRUNCATE TABLE tournament_matches');
-$pdo->exec('TRUNCATE TABLE tournament_round_idles');
-$pdo->exec('TRUNCATE TABLE tournament_rounds');
-$pdo->exec('SET FOREIGN_KEY_CHECKS=1');
+$pdo->exec('DELETE FROM tournament_matches');
+$pdo->exec('DELETE FROM tournament_round_idles');
+$pdo->exec('DELETE FROM tournament_rounds');
 setSetting($pdo, 'tournament_status', 'not_started');
 
 $scheduler = new Scheduler($pdo);
