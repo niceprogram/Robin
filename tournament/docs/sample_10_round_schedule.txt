@@ -1,0 +1,99 @@
+==================================================================
+ SAMPLE 10-ROUND SCHEDULE — 14 players
+==================================================================
+
+----- ROUND 1 ----- (4 matches, 2 resting)
+  [Darts             ] Logan      vs Mia          judge: Amelia    
+  [Car Race          ] Ava        vs Sophia       judge: Liam      
+  [Mini Golf         ] Isabella   vs Lucas        judge: Jack      
+  [Ping Pong Cups    ] Mason      vs Noah         judge: Olivia    
+  Resting: Emma, Ethan
+
+----- ROUND 2 ----- (4 matches, 2 resting)
+  [Darts             ] Mia        vs Liam         judge: Logan     
+  [Table Tennis      ] Olivia     vs Jack         judge: Isabella  
+  [Air Hockey        ] Amelia     vs Lucas        judge: Mason     
+  [Ping Pong Cups    ] Emma       vs Ethan        judge: Sophia    
+  Resting: Ava, Noah
+
+----- ROUND 3 ----- (4 matches, 2 resting)
+  [Ping Pong Cups    ] Jack       vs Amelia       judge: Mia       
+  [Stand on One Leg  ] Mason      vs Emma         judge: Lucas     
+  [Car Race          ] Ava        vs Liam         judge: Olivia    
+  [Arm Wrestling     ] Noah       vs Ethan        judge: Isabella  
+  Resting: Logan, Sophia
+
+----- ROUND 4 ----- (4 matches, 2 resting)
+  [Ping Pong Cups    ] Amelia     vs Isabella     judge: Ethan     
+  [Table Tennis      ] Jack       vs Lucas        judge: Mason     
+  [Stand on One Leg  ] Olivia     vs Sophia       judge: Ava       
+  [Car Race          ] Logan      vs Emma         judge: Noah      
+  Resting: Mia, Liam
+
+----- ROUND 5 ----- (4 matches, 2 resting)
+  [Uno               ] Isabella   vs Ava          judge: Emma      
+  [Ping Pong Cups    ] Mason      vs Olivia       judge: Jack      
+  [Stand on One Leg  ] Logan      vs Sophia       judge: Noah      
+  [Checkers          ] Liam       vs Ethan        judge: Lucas     
+  Resting: Amelia, Mia
+
+----- ROUND 6 ----- (4 matches, 2 resting)
+  [Stand on One Leg  ] Isabella   vs Noah         judge: Mason     
+  [Mini Golf         ] Ava        vs Mia          judge: Amelia    
+  [Arm Wrestling     ] Liam       vs Logan        judge: Emma      
+  [Car Race          ] Sophia     vs Ethan        judge: Jack      
+  Resting: Lucas, Olivia
+
+----- ROUND 7 ----- (4 matches, 2 resting)
+  [Ping Pong Cups    ] Jack       vs Mia          judge: Ethan     
+  [Table Tennis      ] Amelia     vs Mason        judge: Logan     
+  [Arm Wrestling     ] Olivia     vs Noah         judge: Sophia    
+  [Checkers          ] Lucas      vs Emma         judge: Liam      
+  Resting: Ava, Isabella
+
+----- ROUND 8 ----- (4 matches, 2 resting)
+  [Stand on One Leg  ] Mia        vs Mason        judge: Isabella  
+  [Mini Golf         ] Liam       vs Noah         judge: Sophia    
+  [Darts             ] Amelia     vs Ava          judge: Lucas     
+  [Checkers          ] Emma       vs Logan        judge: Ethan       [REMATCH]
+  Resting: Olivia, Jack
+
+----- ROUND 9 ----- (4 matches, 2 resting)
+  [Air Hockey        ] Mason      vs Jack         judge: Emma      
+  [Table Tennis      ] Mia        vs Isabella     judge: Amelia    
+  [Car Race          ] Lucas      vs Ethan        judge: Ava       
+  [Ping Pong Cups    ] Olivia     vs Sophia       judge: Logan       [REMATCH]
+  Resting: Noah, Liam
+
+----- ROUND 10 ----- (4 matches, 2 resting)
+  [Darts             ] Ava        vs Logan        judge: Olivia    
+  [Air Hockey        ] Ethan      vs Isabella     judge: Mia       
+  [Stand on One Leg  ] Liam       vs Lucas        judge: Noah      
+  [Uno               ] Emma       vs Sophia       judge: Mason     
+  Resting: Jack, Amelia
+
+==================================================================
+ FINAL LEADERBOARD AFTER 10 ROUNDS
+==================================================================
+Rank Name       Points  W     L     Draw   Judge  Played Idle  
+1    Mason      19      3     2     0      4      6      0     
+2    Ava        18      3     1     2      2      6      2     
+3    Mia        17      4     1     0      2      6      2     
+4    Jack       17      3     2     0      3      5      2     
+5    Isabella   17      2     1     2      3      6      1     
+6    Logan      17      2     1     2      3      6      1     
+7    Noah       17      2     1     2      3      5      2     
+8    Ethan      16      2     4     0      3      6      1     
+9    Olivia     16      1     1     3      3      5      2     
+10   Amelia     15      2     3     0      3      5      2     
+11   Liam       15      1     2     3      2      6      2     
+12   Sophia     15      1     2     2      3      6      1     
+13   Lucas      15      0     3     3      3      6      1     
+14   Emma       14      1     3     1      3      6      1     
+
+==================================================================
+ FAIRNESS CHECK (play_count / judge_count / idle_count spread)
+==================================================================
+play_count : min=5 max=6 (spread of 1)
+judge_count: min=2 max=4 (spread of 2)
+idle_count : min=0 max=2 (spread of 2)
