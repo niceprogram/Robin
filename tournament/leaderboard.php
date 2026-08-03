@@ -1,3 +1,9 @@
+<?php
+function assetVer(string $relPath): string {
+    $full = __DIR__ . '/' . $relPath;
+    return $relPath . '?v=' . (file_exists($full) ? filemtime($full) : time());
+}
+?>
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -5,7 +11,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Toernooi — Volledig klassement</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="assets/css/style.css" rel="stylesheet">
+<link href="<?php echo assetVer('assets/css/style.css'); ?>" rel="stylesheet">
 </head>
 <body>
 
@@ -39,6 +45,6 @@
     <a href="dashboard.php" class="btn btn-outline-light mt-3">Terug naar dashboard</a>
 </div>
 
-<script src="assets/js/leaderboard.js"></script>
+<script src="<?php echo assetVer('assets/js/leaderboard.js'); ?>"></script>
 </body>
 </html>
