@@ -1,3 +1,12 @@
+<?php
+// Cache-busting: appends each file's last-modified time as a version
+// query string, so browsers always fetch the latest CSS/JS after a
+// deploy instead of serving a stale cached copy.
+function assetVer(string $relPath): string {
+    $full = __DIR__ . '/' . $relPath;
+    return $relPath . '?v=' . (file_exists($full) ? filemtime($full) : time());
+}
+?>
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -5,7 +14,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Toernooi Dashboard</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="assets/css/style.css" rel="stylesheet">
+<link href="<?php echo assetVer('assets/css/style.css'); ?>" rel="stylesheet">
 </head>
 <body>
 
@@ -51,6 +60,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="assets/js/dashboard.js"></script>
+<script src="<?php echo assetVer('assets/js/dashboard.js'); ?>"></script>
 </body>
 </html>
