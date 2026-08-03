@@ -83,7 +83,7 @@ function renderMatches(matches) {
                         <div class="match-station"><span class="emoji">${emoji}</span>${m.station_name}</div>
                         ${resultBadge(m.result_type)}
                     </div>
-                    <div class="match-players">${m.player_a_name}<span class="match-vs">vs</span>${m.player_b_name}</div>
+                    <div class="match-players">${m.player_a_name}<span class="match-vs">tegen</span>${m.player_b_name}</div>
                     <div class="match-judge"><span class="badge">Jury</span> ${m.judge_name}</div>
                     ${pending ? '<div class="tap-hint-card">👉 Tik om de uitslag in te voeren</div>' : ''}
                 </div>
@@ -126,7 +126,7 @@ function renderPreview(preview) {
     }
     const rows = preview.matches.map(m => {
         const emoji = STATION_EMOJI[m.station_name] || '🎮';
-        return `<div class="pill">${emoji} ${m.player_a_name} vs ${m.player_b_name} <small>(jury: ${m.judge_name})</small></div>`;
+        return `<div class="pill">${emoji} ${m.player_a_name} tegen ${m.player_b_name} <small>(jury: ${m.judge_name})</small></div>`;
     }).join('');
     box.innerHTML = `
         <div class="preview-list mt-3">
@@ -168,7 +168,7 @@ function openResultOverlay(matchId) {
     content.innerHTML = `
         <button class="btn btn-outline-light btn-sm overlay-back" onclick="closeResultOverlay()">← Terug</button>
         <div class="result-station-title">${emoji} ${match.station_name}</div>
-        <div class="result-players">${match.player_a_name} <span class="match-vs">vs</span> ${match.player_b_name}</div>
+        <div class="result-players">${match.player_a_name} <span class="match-vs">tegen</span> ${match.player_b_name}</div>
         <div class="result-judge mb-4">Jury: ${match.judge_name}</div>
         <div class="d-grid gap-3">
             <button class="btn btn-primary result-big-btn" onclick="chooseResult(${match.id}, 'win_a')">
