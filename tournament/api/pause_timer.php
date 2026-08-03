@@ -5,7 +5,7 @@ $pdo = getPDO();
 $round = getCurrentRound($pdo);
 
 if (!$round || $round['status'] === 'completed') {
-    jsonResponse(['success' => false, 'error' => 'There is no active round to pause or resume.'], 400);
+    jsonResponse(['success' => false, 'error' => 'Er is geen actieve ronde om te pauzeren of hervatten.'], 400);
 }
 
 if ($round['status'] === 'active') {
