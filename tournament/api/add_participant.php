@@ -6,7 +6,7 @@ $input = readJsonInput();
 
 $name = trim((string)($input['name'] ?? ''));
 if ($name === '') {
-    jsonResponse(['success' => false, 'error' => 'Name is required.'], 400);
+    jsonResponse(['success' => false, 'error' => 'Naam is verplicht.'], 400);
 }
 
 $stmt = $pdo->prepare('INSERT INTO tournament_players (name, active) VALUES (?, 1)');
