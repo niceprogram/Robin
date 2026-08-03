@@ -226,6 +226,28 @@ body {
     padding: 0.8rem 1.2rem;
 }
 
+.idle-banner {
+    background: linear-gradient(90deg, #78350f, #92400e);
+    border: 3px solid var(--tourney-yellow);
+    border-radius: var(--card-radius);
+    padding: 0.9rem 1.4rem;
+    text-align: center;
+}
+
+.idle-banner-label {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fde68a;
+    margin-right: 0.8rem;
+}
+
+.idle-pill {
+    background: #fde68a;
+    color: #78350f;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
 .section-title {
     font-size: 1.2rem;
     font-weight: 800;
