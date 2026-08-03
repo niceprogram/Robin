@@ -60,6 +60,11 @@ function getActiveStations(PDO $pdo): array
     return $pdo->query('SELECT id, name FROM tournament_stations WHERE active = 1 ORDER BY name')->fetchAll();
 }
 
+function getAllStations(PDO $pdo): array
+{
+    return $pdo->query('SELECT * FROM tournament_stations ORDER BY active DESC, name')->fetchAll();
+}
+
 /* -----------------------------------------------------------------
  * Scoring
  * ---------------------------------------------------------------*/
