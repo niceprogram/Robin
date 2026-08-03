@@ -1,0 +1,6 @@
+DELETE FROM tournament_matches;
+DELETE FROM tournament_round_idles;
+DELETE FROM tournament_rounds;
+
+UPDATE tournament_settings SET setting_value = 'not_started' WHERE setting_key = 'tournament_status';
+UPDATE tournament_settings SET setting_value = ''            WHERE setting_key = 'current_round_id';
