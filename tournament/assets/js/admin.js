@@ -27,11 +27,11 @@ function showAlert(msg, type = 'danger') {
 
 function resultLabel(type) {
     switch (type) {
-        case 'win_a': return 'Player A won';
-        case 'win_b': return 'Player B won';
-        case 'draw': return 'Draw';
-        case 'fault': return 'Faulty game';
-        default: return 'Pending';
+        case 'win_a': return 'Gewonnen';
+        case 'win_b': return 'Gewonnen';
+        case 'draw': return 'Gelijkspel';
+        case 'fault': return 'Ongeldig spel';
+        default: return 'Bezig';
     }
 }
 
@@ -39,7 +39,7 @@ function renderMatches(matches) {
     allMatchesCache = matches;
     const container = document.getElementById('adminMatches');
     if (!matches.length) {
-        container.innerHTML = '<p class="text-secondary">No matches in this round yet.</p>';
+        container.innerHTML = '<p class="text-secondary">Nog geen wedstrijden in deze ronde.</p>';
         return;
     }
     container.innerHTML = matches.map(m => {
@@ -51,23 +51,23 @@ function renderMatches(matches) {
                     <strong>${m.station_name}</strong>
                     <span class="badge ${decided ? 'bg-success' : 'bg-warning text-dark'}">${resultLabel(m.result_type)}</span>
                 </div>
-                <div class="text-secondary small mb-2">Judge: ${m.judge_name}</div>
+                <div class="text-secondary small mb-2">Jury: ${m.judge_name}</div>
                 ${decided ? `
                     <div class="fs-5 mb-2">${m.player_a_name} vs ${m.player_b_name}</div>
                     <button class="btn btn-outline-light btn-sm" onclick="openCorrectModal(${m.id})">
-                        ✏️ Correct result
+                        ✏️ Corrigeren
                     </button>
                 ` : `
                     <div class="d-grid gap-2">
                         <button class="btn btn-primary big-win-btn" onclick="submitResult(${m.id}, 'win_a')">
-                            🏆 ${m.player_a_name} won
+                            🏆 ${m.player_a_name} heeft gewonnen
                         </button>
                         <button class="btn btn-primary big-win-btn" onclick="submitResult(${m.id}, 'win_b')">
-                            🏆 ${m.player_b_name} won
+                            🏆 ${m.player_b_name} heeft gewonnen
                         </button>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-outline-info small-result-btn flex-fill" onclick="submitResult(${m.id}, 'draw')">🤝 Draw</button>
-                            <button class="btn btn-outline-secondary small-result-btn flex-fill" onclick="submitResult(${m.id}, 'fault')">⚠️ Faulty game</button>
+                            <button class="btn btn-outline-info small-result-btn flex-fill" onclick="submitResult(${m.id}, 'draw')">🤝 Gelijkspel</button>
+                            <button class="btn btn-outline-secondary small-result-btn flex-fill" onclick="submitResult(${m.id}, 'fault')">⚠️ Ongeldig spel</button>
                         </div>
                     </div>
                 `}
@@ -79,7 +79,7 @@ function renderMatches(matches) {
 async function submitResult(matchId, result) {
     const out = await apiPost('api/submit_result.php', { match_id: matchId, result });
     if (!out.success) {
-        showAlert(out.error || 'Could not save result.');
+        showAlert(out.error || 'Kon uitslag niet opslaan.');
         return;
     }
     refresh();
@@ -102,7 +102,7 @@ async function submitCorrection(result) {
     const out = await apiPost('api/correct_result.php', { match_id: matchId, result });
     bootstrap.Modal.getInstance(document.getElementById('correctModal')).hide();
     if (!out.success) {
-        showAlert(out.error || 'Could not correct result.');
+        showAlert(out.error || 'Kon uitslag niet corrigeren.');
         return;
     }
     refresh();
@@ -114,25 +114,25 @@ function renderControls(data) {
 
     const pauseBtn = document.getElementById('btnPauseResume');
     if (data.round && data.round.status === 'paused') {
-        pauseBtn.textContent = '▶️ Resume timer';
+        pauseBtn.textContent = '▶️ Timer hervatten';
         pauseBtn.disabled = false;
     } else if (data.round && data.round.status === 'active') {
-        pauseBtn.textContent = '⏸ Pause timer';
+        pauseBtn.textContent = '⏸ Timer pauzeren';
         pauseBtn.disabled = false;
     } else {
-        pauseBtn.textContent = '⏸ Pause timer';
+        pauseBtn.textContent = '⏸ Timer pauzeren';
         pauseBtn.disabled = true;
     }
 
     document.getElementById('tournamentStatusLabel').textContent =
-        data.tournament_status === 'not_started' ? 'Not started' :
-        data.tournament_status === 'running' ? 'Running' : data.tournament_status;
+        data.tournament_status === 'not_started' ? 'Niet gestart' :
+        data.tournament_status === 'running' ? 'Bezig' : data.tournament_status;
 
     if (data.round) {
         document.getElementById('roundLabel').textContent =
-            `Round ${data.round.round_number} — ${fmtTime(data.round.remaining_seconds)} left`;
+            `Ronde ${data.round.round_number} — nog ${fmtTime(data.round.remaining_seconds)}`;
     } else {
-        document.getElementById('roundLabel').textContent = 'No round in progress';
+        document.getElementById('roundLabel').textContent = 'Geen ronde actief';
     }
 
     document.getElementById('missingCount').textContent = data.missing_count;
@@ -142,6 +142,11 @@ function renderControls(data) {
     const totalRoundsInput = document.getElementById('totalRoundsInput');
     if (document.activeElement !== totalRoundsInput) {
         totalRoundsInput.value = data.total_rounds ?? '';
+    }
+
+    const roundMinutesInput = document.getElementById('roundMinutesInput');
+    if (document.activeElement !== roundMinutesInput) {
+        roundMinutesInput.value = Math.round((roundDurationSeconds / 60) * 10) / 10;
     }
 
     const eventMinutesInput = document.getElementById('eventMinutesInput');
@@ -157,17 +162,17 @@ function updateCalculateHint() {
     const mins = parseInt(eventMinutesInput.value, 10);
     if (!isNaN(mins) && mins > 0) {
         const suggested = Math.max(1, Math.floor(mins / roundMins));
-        hint.textContent = `≈ ${suggested} rounds at ${roundMins} min each. Real events run a bit slower ` +
-            `than the math (time between rounds for reporting results and moving stations), so build in a buffer.`;
+        hint.textContent = `≈ ${suggested} rondes van ${roundMins} min. In de praktijk duurt het vaak iets langer ` +
+            `(tijd tussen rondes voor het doorgeven van uitslagen en wisselen van station), reken dus een marge in.`;
     } else {
-        hint.textContent = `Rounds are ${roundMins} min each.`;
+        hint.textContent = `Elke ronde duurt ${roundMins} min.`;
     }
 }
 
 function renderIdle(idle) {
     const box = document.getElementById('idleBox');
     if (!idle.length) { box.innerHTML = ''; return; }
-    box.innerHTML = `<div class="mt-2"><strong>Resting:</strong> ${idle.map(p => p.name).join(', ')}</div>`;
+    box.innerHTML = `<div class="mt-2"><strong>Rust:</strong> ${idle.map(p => p.name).join(', ')}</div>`;
 }
 
 function renderParticipants(players) {
@@ -194,7 +199,7 @@ async function addParticipant() {
     if (!name) return;
     const out = await apiPost('api/add_participant.php', { name });
     if (!out.success) {
-        showAlert(out.error || 'Could not add participant.');
+        showAlert(out.error || 'Kon deelnemer niet toevoegen.');
         return;
     }
     input.value = '';
@@ -231,17 +236,19 @@ document.addEventListener('DOMContentLoaded', () => {
         refresh();
     });
     document.getElementById('btnAddParticipant').addEventListener('click', addParticipant);
+
     document.getElementById('btnSaveTotalRounds').addEventListener('click', async () => {
         const val = parseInt(document.getElementById('totalRoundsInput').value, 10);
         const out = await apiPost('api/set_total_rounds.php', { total_rounds: isNaN(val) ? 0 : val });
         if (!out.success) showAlert(out.error);
         refresh();
     });
+
     document.getElementById('eventMinutesInput').addEventListener('input', updateCalculateHint);
     document.getElementById('btnCalculateRounds').addEventListener('click', async () => {
         const mins = parseInt(document.getElementById('eventMinutesInput').value, 10);
         if (isNaN(mins) || mins <= 0) {
-            showAlert('Enter how many minutes the event should run first.');
+            showAlert('Vul eerst in hoeveel minuten het evenement mag duren.');
             return;
         }
         const roundMins = Math.round(roundDurationSeconds / 60);
@@ -249,6 +256,38 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('totalRoundsInput').value = suggested;
         const out = await apiPost('api/set_total_rounds.php', { total_rounds: suggested });
         if (!out.success) showAlert(out.error);
+        refresh();
+    });
+
+    document.getElementById('btnSaveRoundDuration').addEventListener('click', async () => {
+        const mins = parseFloat(document.getElementById('roundMinutesInput').value);
+        if (isNaN(mins) || mins <= 0) {
+            showAlert('Vul een geldige ronde duur in (in minuten).');
+            return;
+        }
+        const out = await apiPost('api/set_round_duration.php', { minutes: mins });
+        if (!out.success) showAlert(out.error);
+        refresh();
+    });
+
+    // Reset tournament: require typing RESET before the confirm button activates.
+    const resetConfirmText = document.getElementById('resetConfirmText');
+    const btnConfirmReset = document.getElementById('btnConfirmReset');
+    resetConfirmText.addEventListener('input', () => {
+        btnConfirmReset.disabled = resetConfirmText.value.trim().toUpperCase() !== 'RESET';
+    });
+    btnConfirmReset.addEventListener('click', async () => {
+        const clearPlayers = document.getElementById('resetClearPlayers').checked;
+        const out = await apiPost('api/reset_tournament.php', { confirm: true, clear_players: clearPlayers });
+        bootstrap.Modal.getInstance(document.getElementById('resetModal')).hide();
+        resetConfirmText.value = '';
+        btnConfirmReset.disabled = true;
+        document.getElementById('resetClearPlayers').checked = false;
+        if (!out.success) {
+            showAlert(out.error || 'Reset mislukt.');
+        } else {
+            showAlert('Toernooi is gereset. Iedereen begint weer op nul.', 'success');
+        }
         refresh();
     });
 
