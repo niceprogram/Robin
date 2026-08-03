@@ -8,7 +8,7 @@ $matchId = (int)($input['match_id'] ?? 0);
 $result  = (string)($input['result'] ?? '');
 
 if (!$matchId || $result === '') {
-    jsonResponse(['success' => false, 'error' => 'match_id and result are required.'], 400);
+    jsonResponse(['success' => false, 'error' => 'match_id en result zijn verplicht.'], 400);
 }
 
 try {
