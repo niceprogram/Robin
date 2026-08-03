@@ -99,6 +99,48 @@ bit fewer rounds than the raw math suggests, or shorten the round
 duration (`round_duration_seconds` in `tournament_settings`) to leave
 buffer room.
 
+You can also change the round length itself at any time — even in the
+middle of a tournament — using **Ronde duur (min)** in the same control
+bar. This only affects rounds generated from that point on; whichever
+round is currently in progress keeps running with the duration it
+already started with, so you never lose or gain time on a live timer.
+
+## 2b. Starting a brand new tournament (reset)
+
+To wipe an event completely and start everyone back at zero, use
+**🔄 Toernooi resetten** on `admin.php`. It's a two-step safety check:
+you have to type `RESET` into a text box before the confirm button even
+becomes clickable, so it can't be triggered by an accidental click.
+
+There's also a checkbox, **"Ook alle deelnemers verwijderen"**
+(also remove all participants):
+
+- **Unchecked** (default): clears every round/match/result and puts the
+  tournament back to "not started," but keeps your existing roster of
+  names — handy if you're running a second tournament with the same
+  group of kids right after the first.
+- **Checked**: also deletes every player, so you can add a completely
+  new set of names for a totally different group.
+
+This is permanent and cannot be undone — there's no "undo reset" button,
+only the typed confirmation before it runs.
+
+## 2c. Dutch interface
+
+Every page (`dashboard.php`, `admin.php`, `leaderboard.php`, `index.php`),
+all on-screen buttons/labels/messages, and the 10 station names are now
+in Dutch (e.g. *Airhockey, Armworstelen, Autoracen, Dammen, Tafeltennis,
+Op één been staan, Pingpongbekers, Minigolf* — *Darts* and *Uno* are the
+same word in both languages).
+
+**If you already imported the original English schema before this
+update**, run `sql/migrate_dutch_stations.sql` once against your existing
+`kvannl_Zebra` database (via phpMyAdmin's Import tab) to rename your
+existing station rows to their Dutch equivalents. It's safe to run even
+if you're not sure whether you need it — every statement only touches
+rows that still have the old English name and leaves everything else
+untouched.
+
 ## 3. Scoring rules (as specified)
 
 | Outcome            | Player A | Player B | Judge |
@@ -242,13 +284,17 @@ tournament/
 │   ├── start_next_round.php    Generates the next round
 │   ├── pause_timer.php         Pause/resume the round clock
 │   ├── add_participant.php     Add a child mid-event
-│   └── toggle_participant.php  Activate/deactivate a child
+│   ├── toggle_participant.php  Activate/deactivate a child
+│   ├── set_total_rounds.php    Set the planned-rounds target
+│   ├── set_round_duration.php  Change round length (mid-tournament OK)
+│   └── reset_tournament.php    Wipe rounds/matches (optionally players)
 ├── assets/
 │   ├── css/style.css
 │   └── js/{dashboard,admin,leaderboard}.js
 ├── sql/
-│   ├── schema.sql              Full schema (run first)
-│   └── seed_14_players.sql     Sample data (14 children)
+│   ├── schema.sql                   Full schema (run first)
+│   ├── seed_14_players.sql          Sample data (14 children)
+│   └── migrate_dutch_stations.sql   Run once if upgrading an existing DB
 └── docs/
     ├── simulate_schedule.php        CLI demo: simulates N rounds end-to-end
     └── sample_10_round_schedule.txt A real generated 10-round example
