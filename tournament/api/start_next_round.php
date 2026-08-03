@@ -6,12 +6,12 @@ $pdo = getPDO();
 
 $status = getSetting($pdo, 'tournament_status', 'not_started');
 if ($status === 'not_started') {
-    jsonResponse(['success' => false, 'error' => 'Start the tournament first.'], 400);
+    jsonResponse(['success' => false, 'error' => 'Start eerst het toernooi.'], 400);
 }
 
 $round = getCurrentRound($pdo);
 if ($round && !isRoundFullyDecided($pdo, (int)$round['id'])) {
-    jsonResponse(['success' => false, 'error' => 'The current round still has matches without a result.'], 400);
+    jsonResponse(['success' => false, 'error' => 'De huidige ronde heeft nog wedstrijden zonder uitslag.'], 400);
 }
 
 $scheduler = new Scheduler($pdo);
