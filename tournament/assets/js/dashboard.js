@@ -99,9 +99,9 @@ function renderIdle(idlePlayers) {
         return;
     }
     box.innerHTML = `
-        <div class="idle-list mt-3">
-            <div class="section-title">Rust deze ronde</div>
-            ${idlePlayers.map(p => `<span class="pill">${p.name}</span>`).join('')}
+        <div class="idle-banner mb-3">
+            <span class="idle-banner-label">🪑 Zit deze ronde uit:</span>
+            ${idlePlayers.map(p => `<span class="pill idle-pill">${p.name}</span>`).join('')}
         </div>
     `;
 }
