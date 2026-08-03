@@ -7,6 +7,9 @@
 -- each statement only changes rows that still have the old value.
 -- =================================================================
 
+SET NAMES utf8mb4;
+
+
 -- Rename the 10 stations to their Dutch names (only affects rows that
 -- still have the original English name; already-renamed rows are
 -- left untouched).
