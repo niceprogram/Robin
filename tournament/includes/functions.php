@@ -90,14 +90,14 @@ function recordMatchResult(PDO $pdo, int $matchId, string $resultType): array
 {
     $validResults = ['win_a', 'win_b', 'draw', 'fault'];
     if (!in_array($resultType, $validResults, true)) {
-        throw new InvalidArgumentException('Invalid result type.');
+        throw new InvalidArgumentException('Ongeldig resultaattype.');
     }
 
     $stmt = $pdo->prepare('SELECT * FROM tournament_matches WHERE id = ?');
     $stmt->execute([$matchId]);
     $match = $stmt->fetch();
     if (!$match) {
-        throw new RuntimeException('Match not found.');
+        throw new RuntimeException('Wedstrijd niet gevonden.');
     }
 
     [$pa, $pb, $pj] = computeScoring($resultType);
