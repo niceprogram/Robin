@@ -65,7 +65,8 @@ PHP + vanilla JS + Bootstrap 5 via CDN.
    are automatically included starting from the very next round generated.
    A participant who leaves early can be toggled off the same way and
    will simply stop being scheduled (their existing points stay on the
-   board).
+   board). Click the ✏️ next to any name to rename them in place — handy
+   for typos or reusing the same roster with updated names between events.
 9. **Correct result** on any already-decided match reopens it and lets you
    change/fix the outcome (e.g. a judge made an error).
 10. **Kids can also report results themselves, directly on the TV/laptop.**
@@ -284,6 +285,7 @@ tournament/
 │   ├── start_next_round.php    Generates the next round
 │   ├── pause_timer.php         Pause/resume the round clock
 │   ├── add_participant.php     Add a child mid-event
+│   ├── rename_participant.php  Rename an existing participant
 │   ├── toggle_participant.php  Activate/deactivate a child
 │   ├── set_total_rounds.php    Set the planned-rounds target
 │   ├── set_round_duration.php  Change round length (mid-tournament OK)
