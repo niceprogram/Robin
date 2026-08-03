@@ -1,0 +1,24 @@
+<?php
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/scheduler.php';
+
+$pdo = getPDO();
+
+$status = getSetting($pdo, 'tournament_status', 'not_started');
+if ($status === 'not_started') {
+    jsonResponse(['success' => false, 'error' => 'Start the tournament first.'], 400);
+}
+
+$round = getCurrentRound($pdo);
+if ($round && !isRoundFullyDecided($pdo, (int)$round['id'])) {
+    jsonResponse(['success' => false, 'error' => 'The current round still has matches without a result.'], 400);
+}
+
+$scheduler = new Scheduler($pdo);
+$plan = $scheduler->generateNextRound();
+
+if (!$plan['feasible']) {
+    jsonResponse(['success' => false, 'error' => $plan['reason']], 400);
+}
+
+jsonResponse(['success' => true, 'round_number' => $plan['round_number'], 'round_id' => $plan['round_id']]);
