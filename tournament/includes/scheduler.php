@@ -113,20 +113,20 @@ class Scheduler
         if ($n < 3) {
             return [
                 'feasible' => false,
-                'reason' => "Need at least 3 active players to form a match (currently {$n}).",
+                'reason' => "Minstens 3 actieve deelnemers nodig voor een wedstrijd (nu: {$n}).",
                 'matches' => [], 'idle' => [],
             ];
         }
 
         $maxStations = count($stations);
         if ($maxStations < 1) {
-            return ['feasible' => false, 'reason' => 'No active stations available.', 'matches' => [], 'idle' => []];
+            return ['feasible' => false, 'reason' => 'Geen actieve stations beschikbaar.', 'matches' => [], 'idle' => []];
         }
 
         // Each match needs exactly 3 kids (2 players + 1 judge). Cap by stations too.
         $matchCount = min(intdiv($n, 3), $maxStations, STATIONS_MAX);
         if ($matchCount < 1) {
-            return ['feasible' => false, 'reason' => 'Not enough active players for a full match yet.', 'matches' => [], 'idle' => []];
+            return ['feasible' => false, 'reason' => 'Nog niet genoeg actieve deelnemers voor een volledige wedstrijd.', 'matches' => [], 'idle' => []];
         }
 
         $roster = [];
