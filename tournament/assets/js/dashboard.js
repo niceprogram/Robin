@@ -175,13 +175,36 @@ function resultBadge(type) {
     }
 }
 
+/**
+ * Chooses how many grid columns/rows to use based on how many matches
+ * are actually running this round, so a small tournament (e.g. 2-4
+ * matches) gets fewer, bigger, easier-to-read cards instead of always
+ * being squeezed into a fixed 3-column grid meant for a full 20+ player
+ * event.
+ */
+function computeGridDims(matchCount) {
+    let columns;
+    if (matchCount <= 2) columns = matchCount;       // 1 or 2 matches: 1 or 2 columns
+    else if (matchCount <= 4) columns = 2;            // 3-4 matches: 2 columns
+    else columns = 3;                                 // 5+ matches: 3 columns (up to 8 max)
+    const rows = Math.max(1, Math.ceil(matchCount / columns));
+    return { columns, rows };
+}
+
 function renderMatches(matches) {
     currentMatchesCache = matches;
     const container = document.getElementById('matchesContainer');
     if (!matches.length) {
+        container.style.gridTemplateColumns = '';
+        container.style.gridTemplateRows = '';
         container.innerHTML = '<p class="text-secondary fs-5">Nog geen wedstrijden — wachten op de volgende ronde.</p>';
         return;
     }
+
+    const { columns, rows } = computeGridDims(matches.length);
+    container.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+    container.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+
     container.innerHTML = matches.map(m => {
         const emoji = STATION_EMOJI[m.station_name] || '🎮';
         const pending = m.result_type === 'pending';
@@ -225,6 +248,43 @@ function renderLeaderboard(rows) {
             <td>${r.wins}</td>
         </tr>
     `).join('');
+    fitLeaderboard(rows.length);
+}
+
+/**
+ * Shrinks the leaderboard's font-size and row padding so that ALL
+ * players fit inside the panel's fixed height without ever needing a
+ * scrollbar — the dashboard is a kiosk display (mouse/touch only, no
+ * one can scroll a TV), so everything must be visible at once
+ * regardless of whether there are 10 or 24 participants.
+ *
+ * This measures the ACTUAL rendered height and shrinks step by step
+ * until it genuinely fits, rather than estimating via a formula —
+ * formulas drift out from real line-height/border/padding rounding,
+ * measurement never does.
+ */
+function fitLeaderboard(rowCount) {
+    const panel = document.querySelector('.leaderboard-panel');
+    if (!panel || rowCount === 0) return;
+    const table = panel.querySelector('table');
+    if (!table) return;
+
+    const MIN_FONT_SIZE = 7;   // readability floor
+    const MAX_ITERATIONS = 60; // safety guard against infinite loops
+
+    let fontSize = 19;
+    let rowPadding = 9;
+    panel.style.setProperty('--lb-font-size', fontSize + 'px');
+    panel.style.setProperty('--lb-row-padding', rowPadding + 'px');
+
+    let iterations = 0;
+    while (table.scrollHeight > panel.clientHeight && fontSize > MIN_FONT_SIZE && iterations < MAX_ITERATIONS) {
+        fontSize -= 0.5;
+        rowPadding = Math.max(0, rowPadding - 0.3);
+        panel.style.setProperty('--lb-font-size', fontSize.toFixed(1) + 'px');
+        panel.style.setProperty('--lb-row-padding', rowPadding.toFixed(1) + 'px');
+        iterations++;
+    }
 }
 
 function renderPreview(preview) {
@@ -379,7 +439,23 @@ function fitStage() {
     stage.style.transform = `scale(${scale})`;
 }
 
+/**
+ * The dashboard is a kiosk display (Raspberry Pi driving a TV, mouse
+ * only, nobody can scroll it) — this locks out page scrolling entirely.
+ * Applied via JS rather than a shared CSS rule so it can never
+ * accidentally leak into admin.php/leaderboard.php, which DO need
+ * normal scrolling (they're used on a laptop/phone).
+ */
+function disablePageScroll() {
+    document.documentElement.style.height = '100%';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.height = '100%';
+    document.body.style.margin = '0';
+    document.body.style.overflow = 'hidden';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    disablePageScroll();
     fitStage();
     window.addEventListener('resize', fitStage);
 
