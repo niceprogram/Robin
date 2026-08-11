@@ -25,11 +25,11 @@ body {
    Every element below is sized against that fixed 1920x1080 budget, so
    the same layout always fits — no scrolling, no per-TV tweaking. */
 
-html, body {
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
-}
+/* NOTE: overflow:hidden / fixed-height is applied via JavaScript
+   (dashboard.js) only when the dashboard page actually runs, NOT here
+   in the shared stylesheet — admin.php and leaderboard.php use this
+   same stylesheet and need normal page scrolling to work (they're
+   viewed on a laptop/phone, not a fixed kiosk screen). */
 
 #stageOuter {
     width: 100vw;
@@ -158,11 +158,14 @@ html, body {
 /* 3x3 grid: covers every possible match count (up to 8 matches for the
    maximum 24 players) within 3 rows, always filling the available
    height evenly regardless of how many matches there are this round. */
+/* Grid dimensions (columns/rows) are set dynamically by dashboard.js's
+   computeGridDims(), so a small tournament with only a few matches gets
+   fewer, bigger columns instead of always being squeezed into a fixed
+   3-column layout meant for a full 20+ player event. Always fits within
+   3 rows regardless (max possible matches for 24 players is 8). */
 .matches-grid {
     flex: 1 1 auto;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(3, 1fr);
     gap: 14px;
     min-height: 0;
 }
@@ -243,10 +246,22 @@ html, body {
     padding: 0.8rem 1rem;
     flex: 3 1 0;
     min-height: 0;
-    overflow-y: auto;
+    /* No scrollbar on the kiosk dashboard — dashboard.js's
+       fitLeaderboard() shrinks font-size/row padding so every player
+       always fits without needing to scroll. overflow:hidden here is
+       just a safety clamp, not an intended scroll area. */
+    overflow: hidden;
 }
 
-.leaderboard-panel table { color: #f1f5f9; font-size: 0.95rem; }
+.leaderboard-panel table {
+    color: #f1f5f9;
+    font-size: var(--lb-font-size, 0.95rem);
+}
+.leaderboard-panel th,
+.leaderboard-panel td {
+    padding-top: var(--lb-row-padding, 0.5rem);
+    padding-bottom: var(--lb-row-padding, 0.5rem);
+}
 .leaderboard-panel th { color: #93c5fd; border-bottom: 2px solid #334155 !important; }
 .leaderboard-panel tr:nth-child(1) td { color: #facc15; font-weight: 800; }
 .leaderboard-panel tr:nth-child(2) td { color: #d1d5db; font-weight: 700; }
@@ -295,8 +310,8 @@ html, body {
 }
 
 .idle-banner {
-    background: #0f172a;
-    border: 4px solid #facc15;
+    background: #000000;
+    border: 5px solid #facc15;
     border-radius: var(--card-radius);
     padding: 0.5rem 1.2rem;
     text-align: center;
@@ -304,17 +319,18 @@ html, body {
 }
 
 .idle-banner-label {
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     font-weight: 900;
-    color: #facc15;
+    color: #ffffff;
     margin-right: 0.7rem;
+    text-shadow: 0 0 3px rgba(0,0,0,0.9);
 }
 
 .idle-pill {
-    background: #facc15;
-    color: #0f172a;
-    font-weight: 800;
-    font-size: 1rem;
+    background: #ffffff;
+    color: #000000;
+    font-weight: 900;
+    font-size: 1.05rem;
 }
 
 .section-title {
