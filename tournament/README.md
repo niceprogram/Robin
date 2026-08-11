@@ -161,6 +161,44 @@ to prevent this regardless of import method — re-importing after this
 update should resolve it. phpMyAdmin's Import tab handles this correctly
 by default.
 
+## 2e. Live commentary
+
+The dashboard has a "Live commentaar" panel that reacts to what's
+happening — a random fun Dutch line whenever a match gets a result
+("🏆 Mia verslaat Olivia bij Airhockey!") or a new round starts. It's
+entirely template-based (a set of pre-written phrases with names/stations
+filled in) — no AI, no internet dependency beyond the page already being
+loaded, and no ongoing cost.
+
+Click the 🔇/🔊 button above the panel to also have it **read aloud**
+using the browser's built-in text-to-speech voice (Dutch, if the device
+has one installed — most do). It defaults to muted, since browsers block
+audio until a person actually clicks something on the page; the button
+click itself both enables and unlocks speech in one action.
+
+## 2f. Auto-fit for any screen size
+
+The dashboard is drawn onto a fixed virtual canvas (1920×1080 — standard
+Full HD) and JavaScript automatically scales the whole thing (via
+`fitStage()` in `dashboard.js`) to exactly fit whatever real screen or
+window it's displayed on, recalculating live on resize. This means:
+
+- The same layout works correctly on any landscape TV resolution
+  (720p, 1080p, 4K, odd in-between sizes) without any manual per-screen
+  tweaking.
+- If the real screen's aspect ratio doesn't match 16:9 (e.g. an old 4:3
+  projector), the dashboard is letterboxed (scaled to fit, centered,
+  with black bars) rather than stretched or cropped.
+- There is never a scrollbar or cut-off content — the up-to-8-match grid
+  (3 columns × 3 rows, covering every possible player count from 10–24)
+  and the leaderboard/commentary column are sized to always fit within
+  that fixed budget, however many matches are actually running.
+
+The score-entry overlay (opened by tapping a match) is deliberately kept
+**outside** the scaled stage, so its buttons always render at full real
+screen size for easy tapping, regardless of the stage's current scale
+factor.
+
 ## 3. Scoring rules (as specified)
 
 | Outcome            | Player A | Player B | Judge |
