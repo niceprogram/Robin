@@ -18,6 +18,117 @@ let tickHandle = null;
 let currentMatchesCache = [];
 let overlayOpen = false;
 
+/* ---------------- Live commentaar (gratis, geen AI nodig) ---------------- */
+
+const COMMENTARY_WIN = [
+    '🏆 {winner} verslaat {loser} bij {station}!',
+    'Wat een wedstrijd! {winner} wint van {loser} bij {station}!',
+    '{winner} pakt de winst tegen {loser} bij {station}! 🎉',
+    'Daar gaat {loser}… {winner} wint bij {station}!',
+    'Knap gespeeld, {winner}! {loser} moet het onderspit delven bij {station}.',
+    'En de winnaar is… {winner}! Goed gedaan bij {station}.',
+    '{winner} laat zien hoe het moet bij {station}!',
+];
+const COMMENTARY_DRAW = [
+    '🤝 Gelijkspel tussen {a} en {b} bij {station}!',
+    'Niemand wint! {a} en {b} eindigen gelijk bij {station}.',
+    'Spannend! {a} en {b} houden elkaar in evenwicht bij {station}.',
+    'Zo close! {a} en {b} delen de punten bij {station}.',
+];
+const COMMENTARY_FAULT = [
+    '⚠️ Ongeldig spel bij {station} tussen {a} en {b} — die telt niet!',
+    'Hmm, dat ging niet helemaal goed bij {station} voor {a} en {b}.',
+    'Opnieuw proberen maar! Ongeldig spel bij {station}.',
+];
+const COMMENTARY_ROUND_START = [
+    '📣 Ronde {round} begint! Succes allemaal!',
+    '🔔 Daar gaat ronde {round}!',
+    'Ronde {round} is gestart — veel plezier!',
+];
+
+let previousMatchResults = {};
+let previousRoundNumber = null;
+let isFirstCommentaryLoad = true;
+let commentaryLines = [];
+let speechEnabled = localStorage.getItem('speechEnabled') === 'true';
+
+function pickRandom(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function fillTemplate(tpl, vars) {
+    return tpl.replace(/\{(\w+)\}/g, (_, key) => vars[key] ?? '');
+}
+
+function speak(text) {
+    if (!speechEnabled || !('speechSynthesis' in window)) return;
+    const utterance = new SpeechSynthesisUtterance(text.replace(/[🏆🎉🤝⚠️📣🔔]/g, ''));
+    utterance.lang = 'nl-NL';
+    const voices = window.speechSynthesis.getVoices();
+    const nlVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('nl'));
+    if (nlVoice) utterance.voice = nlVoice;
+    window.speechSynthesis.speak(utterance);
+}
+
+function addCommentary(text) {
+    commentaryLines.unshift(text);
+    commentaryLines = commentaryLines.slice(0, 12);
+    renderCommentary();
+    speak(text);
+}
+
+function renderCommentary() {
+    const box = document.getElementById('commentaryFeed');
+    if (!commentaryLines.length) {
+        box.innerHTML = '<div class="commentary-empty">Hier verschijnt live commentaar zodra er uitslagen binnenkomen…</div>';
+        return;
+    }
+    box.innerHTML = commentaryLines.map(line => `<div class="commentary-line">${line}</div>`).join('');
+}
+
+/**
+ * Compares the freshly-fetched matches/round against what we saw last
+ * time, and generates commentary lines for anything new: a match that
+ * just got a result, or a new round starting.
+ */
+function updateCommentaryFromData(data) {
+    if (isFirstCommentaryLoad) {
+        // Don't retroactively comment on results that were already
+        // decided before the dashboard was opened/reloaded.
+        (data.matches || []).forEach(m => { previousMatchResults[m.id] = m.result_type; });
+        previousRoundNumber = data.round ? data.round.round_number : null;
+        isFirstCommentaryLoad = false;
+        return;
+    }
+
+    if (data.round && data.round.round_number !== previousRoundNumber) {
+        addCommentary(fillTemplate(pickRandom(COMMENTARY_ROUND_START), { round: data.round.round_number }));
+        previousRoundNumber = data.round.round_number;
+    }
+
+    (data.matches || []).forEach(m => {
+        const prev = previousMatchResults[m.id];
+        if (prev === 'pending' && m.result_type !== 'pending') {
+            const vars = {
+                a: m.player_a_name,
+                b: m.player_b_name,
+                station: m.station_name,
+            };
+            if (m.result_type === 'win_a') {
+                addCommentary(fillTemplate(pickRandom(COMMENTARY_WIN), { winner: m.player_a_name, loser: m.player_b_name, station: m.station_name }));
+            } else if (m.result_type === 'win_b') {
+                addCommentary(fillTemplate(pickRandom(COMMENTARY_WIN), { winner: m.player_b_name, loser: m.player_a_name, station: m.station_name }));
+            } else if (m.result_type === 'draw') {
+                addCommentary(fillTemplate(pickRandom(COMMENTARY_DRAW), vars));
+            } else if (m.result_type === 'fault') {
+                addCommentary(fillTemplate(pickRandom(COMMENTARY_FAULT), vars));
+            }
+        }
+        previousMatchResults[m.id] = m.result_type;
+    });
+}
+
+
 function fmtTime(sec) {
     sec = Math.max(0, Math.round(sec));
     const m = Math.floor(sec / 60);
@@ -68,7 +179,7 @@ function renderMatches(matches) {
     currentMatchesCache = matches;
     const container = document.getElementById('matchesContainer');
     if (!matches.length) {
-        container.innerHTML = '<p class="text-secondary fs-4">Nog geen wedstrijden — wachten op de volgende ronde.</p>';
+        container.innerHTML = '<p class="text-secondary fs-5">Nog geen wedstrijden — wachten op de volgende ronde.</p>';
         return;
     }
     container.innerHTML = matches.map(m => {
@@ -77,16 +188,14 @@ function renderMatches(matches) {
         const cardCls = pending ? 'match-card-clickable' : 'decided-card';
         const clickAttr = pending ? `onclick="openResultOverlay(${m.id})"` : '';
         return `
-            <div class="col">
-                <div class="match-card ${cardCls}" ${clickAttr}>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="match-station"><span class="emoji">${emoji}</span>${m.station_name}</div>
-                        ${resultBadge(m.result_type)}
-                    </div>
-                    <div class="match-players">${m.player_a_name}<span class="match-vs">tegen</span>${m.player_b_name}</div>
-                    <div class="match-judge"><span class="badge">Jury</span> ${m.judge_name}</div>
-                    ${pending ? '<div class="tap-hint-card">👉 Tik om de uitslag in te voeren</div>' : ''}
+            <div class="match-card ${cardCls}" ${clickAttr}>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="match-station"><span class="emoji">${emoji}</span>${m.station_name}</div>
+                    ${resultBadge(m.result_type)}
                 </div>
+                <div class="match-players">${m.player_a_name}<span class="match-vs">tegen</span>${m.player_b_name}</div>
+                <div class="match-judge"><span class="badge">Jury</span> ${m.judge_name}</div>
+                ${pending ? '<div class="tap-hint-card">👉 Tik om de uitslag in te voeren</div>' : ''}
             </div>
         `;
     }).join('');
@@ -99,7 +208,7 @@ function renderIdle(idlePlayers) {
         return;
     }
     box.innerHTML = `
-        <div class="idle-banner mb-3">
+        <div class="idle-banner">
             <span class="idle-banner-label">🪑 Zit deze ronde uit:</span>
             ${idlePlayers.map(p => `<span class="pill idle-pill">${p.name}</span>`).join('')}
         </div>
@@ -129,7 +238,7 @@ function renderPreview(preview) {
         return `<div class="pill">${emoji} ${m.player_a_name} tegen ${m.player_b_name} <small>(jury: ${m.judge_name})</small></div>`;
     }).join('');
     box.innerHTML = `
-        <div class="preview-list mt-3">
+        <div class="preview-list">
             <div class="section-title">Voorproefje volgende ronde</div>
             ${rows || '<span class="text-secondary">—</span>'}
         </div>
@@ -244,12 +353,54 @@ async function refresh() {
         renderIdle(data.idle_players);
         renderLeaderboard(data.leaderboard);
         renderPreview(data.next_round_preview);
+        updateCommentaryFromData(data);
     } catch (e) {
         console.error('Dashboard refresh failed', e);
     }
 }
 
+/**
+ * Scales the fixed 1920x1080 #stage canvas to exactly fit the real
+ * window/screen, preserving aspect ratio (letterboxed if the screen's
+ * aspect ratio differs). This is what lets the same dashboard layout
+ * work correctly on any TV resolution or landscape screen size without
+ * scrolling or overflow — see the matching CSS in style.css.
+ */
+const STAGE_WIDTH = 1920;
+const STAGE_HEIGHT = 1080;
+
+function fitStage() {
+    const stage = document.getElementById('stage');
+    if (!stage) return;
+    const scale = Math.min(
+        window.innerWidth / STAGE_WIDTH,
+        window.innerHeight / STAGE_HEIGHT
+    );
+    stage.style.transform = `scale(${scale})`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    fitStage();
+    window.addEventListener('resize', fitStage);
+
+    renderCommentary();
+
+    const speechBtn = document.getElementById('btnToggleSpeech');
+    speechBtn.textContent = speechEnabled ? '🔊' : '🔇';
+    speechBtn.addEventListener('click', () => {
+        speechEnabled = !speechEnabled;
+        localStorage.setItem('speechEnabled', speechEnabled ? 'true' : 'false');
+        speechBtn.textContent = speechEnabled ? '🔊' : '🔇';
+        if (speechEnabled) {
+            // Nudge the browser's speech engine awake on this user click,
+            // and load the voice list (some browsers populate it lazily).
+            window.speechSynthesis.getVoices();
+            speak('Commentaar staat aan!');
+        } else {
+            window.speechSynthesis.cancel();
+        }
+    });
+
     startLocalTicking();
     refresh();
     setInterval(refresh, 2000);
