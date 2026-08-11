@@ -18,42 +18,79 @@ body {
     border-radius: var(--card-radius);
 }
 
-/* ---------------- Dashboard (TV) ---------------- */
+/* ---------------- Dashboard (TV) — fixed-resolution auto-fit stage ----------------
+   The whole dashboard is drawn onto a fixed 1920x1080 canvas (#stage),
+   which dashboard.js scales via CSS transform to exactly fit whatever
+   real screen/window it's shown on (see fitStage() in dashboard.js).
+   Every element below is sized against that fixed 1920x1080 budget, so
+   the same layout always fits — no scrolling, no per-TV tweaking. */
+
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+#stageOuter {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+}
+
+#stage {
+    width: 1920px;
+    height: 1080px;
+    flex: 0 0 auto;
+    transform-origin: center center;
+    box-sizing: border-box;
+    padding: 22px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    overflow: hidden;
+}
 
 .tv-header {
-    padding: 1.2rem 2rem;
-    background: rgba(15, 23, 42, 0.85);
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 14px;
     border-bottom: 4px solid var(--tourney-blue);
 }
 
 .tv-title {
-    font-size: 2.4rem;
+    font-size: 2.1rem;
     font-weight: 800;
     letter-spacing: 0.5px;
 }
 
 .round-badge {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     font-weight: 700;
     background: var(--tourney-blue);
     border-radius: 2rem;
-    padding: 0.4rem 1.4rem;
+    padding: 0.3rem 1.2rem;
 }
 
 .progress-sub {
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: #93c5fd;
-    margin-top: 0.3rem;
+    margin-top: 0.25rem;
 }
 
 .time-left-estimate {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     color: #94a3b8;
-    margin-top: 0.3rem;
+    margin-top: 0.2rem;
 }
 
 .tap-hint {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #64748b;
     text-transform: none;
     letter-spacing: normal;
@@ -61,7 +98,7 @@ body {
 }
 
 .timer-display {
-    font-size: 7rem;
+    font-size: 5.2rem;
     font-weight: 900;
     line-height: 1;
     font-variant-numeric: tabular-nums;
@@ -78,12 +115,68 @@ body {
     50% { transform: scale(1.06); }
 }
 
+#statusBanner {
+    flex: 0 0 auto;
+    font-size: 1.2rem;
+    color: #facc15;
+    min-height: 1.6rem;
+}
+
+/* Fixed-height slot so the layout never shifts whether someone is
+   resting this round or not. */
+#idleBox {
+    flex: 0 0 62px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+.stage-main {
+    flex: 1 1 auto;
+    display: flex;
+    gap: 22px;
+    min-height: 0;
+}
+
+.stage-left {
+    flex: 3 1 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+}
+
+.stage-right {
+    flex: 1 1 0;
+    min-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+}
+
+/* 3x3 grid: covers every possible match count (up to 8 matches for the
+   maximum 24 players) within 3 rows, always filling the available
+   height evenly regardless of how many matches there are this round. */
+.matches-grid {
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 14px;
+    min-height: 0;
+}
+
 .match-card {
     background: #1e293b;
     border-radius: var(--card-radius);
     border: 3px solid #334155;
-    padding: 1rem 1.2rem;
-    margin-bottom: 1rem;
+    padding: 0.8rem 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .match-card.repeat-flag {
@@ -102,14 +195,151 @@ body {
 }
 
 .tap-hint-card {
-    margin-top: 0.6rem;
-    font-size: 0.95rem;
+    margin-top: 0.4rem;
+    font-size: 0.85rem;
     color: #4ade80;
     font-weight: 700;
     text-align: center;
 }
 
-/* ---------------- Result-entry overlay (tap a match to score it) ---------------- */
+.match-station {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #93c5fd;
+}
+
+.match-station .emoji { font-size: 1.3rem; margin-right: 0.3rem; }
+
+.match-players {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0.3rem 0;
+    line-height: 1.15;
+}
+
+.match-vs { color: #94a3b8; font-weight: 400; padding: 0 0.35rem; }
+
+.match-judge {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+}
+
+.match-judge .badge { background: var(--tourney-purple); }
+
+.match-result-badge {
+    font-size: 0.85rem;
+    padding: 0.3rem 0.7rem;
+}
+
+#previewBox {
+    flex: 0 0 auto;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+.leaderboard-panel {
+    background: #1e293b;
+    border-radius: var(--card-radius);
+    padding: 0.8rem 1rem;
+    flex: 3 1 0;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.leaderboard-panel table { color: #f1f5f9; font-size: 0.95rem; }
+.leaderboard-panel th { color: #93c5fd; border-bottom: 2px solid #334155 !important; }
+.leaderboard-panel tr:nth-child(1) td { color: #facc15; font-weight: 800; }
+.leaderboard-panel tr:nth-child(2) td { color: #d1d5db; font-weight: 700; }
+.leaderboard-panel tr:nth-child(3) td { color: #f0b27a; font-weight: 700; }
+
+.commentary-panel {
+    background: #1e293b;
+    border-radius: var(--card-radius);
+    padding: 0.6rem 0.9rem;
+    flex: 2 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.commentary-line {
+    font-size: 0.88rem;
+    line-height: 1.25;
+    padding: 0.35rem 0.55rem;
+    border-radius: 0.6rem;
+    background: #273449;
+    animation: commentaryIn 0.3s ease;
+}
+
+.commentary-line:first-child {
+    background: #334155;
+    font-weight: 700;
+}
+
+.commentary-empty {
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+@keyframes commentaryIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.preview-list {
+    background: #1e293b;
+    border-radius: var(--card-radius);
+    padding: 0.5rem 0.9rem;
+}
+
+.idle-banner {
+    background: #0f172a;
+    border: 4px solid #facc15;
+    border-radius: var(--card-radius);
+    padding: 0.5rem 1.2rem;
+    text-align: center;
+    width: 100%;
+}
+
+.idle-banner-label {
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: #facc15;
+    margin-right: 0.7rem;
+}
+
+.idle-pill {
+    background: #facc15;
+    color: #0f172a;
+    font-weight: 800;
+    font-size: 1rem;
+}
+
+.section-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #93c5fd;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.3rem;
+    flex: 0 0 auto;
+}
+
+.pill {
+    display: inline-block;
+    background: #334155;
+    border-radius: 2rem;
+    padding: 0.25rem 0.8rem;
+    margin: 0.12rem;
+    font-size: 0.9rem;
+}
+
+/* ---------------- Result-entry overlay (tap a match to score it) ----------------
+   Deliberately NOT scaled with #stage — always renders at the real,
+   full screen size so touch targets stay big regardless of the TV's
+   resolution or the stage's current scale factor. */
 
 .result-overlay {
     position: fixed;
@@ -176,94 +406,6 @@ body {
 .thank-you-screen.thank-you-error {
     color: #f87171;
     font-size: 1.8rem;
-}
-
-.match-station {
-    font-size: 1.3rem;
-    font-weight: 800;
-    color: #93c5fd;
-}
-
-.match-station .emoji { font-size: 1.6rem; margin-right: 0.3rem; }
-
-.match-players {
-    font-size: 1.7rem;
-    font-weight: 700;
-    margin: 0.4rem 0;
-}
-
-.match-vs { color: #94a3b8; font-weight: 400; padding: 0 0.4rem; }
-
-.match-judge {
-    font-size: 1.05rem;
-    color: #cbd5e1;
-}
-
-.match-judge .badge { background: var(--tourney-purple); }
-
-.match-result-badge {
-    font-size: 1rem;
-    padding: 0.35rem 0.8rem;
-}
-
-.leaderboard-panel {
-    background: #1e293b;
-    border-radius: var(--card-radius);
-    padding: 1rem 1.2rem;
-    max-height: 78vh;
-    overflow-y: auto;
-}
-
-.leaderboard-panel table { color: #f1f5f9; }
-.leaderboard-panel th { color: #93c5fd; border-bottom: 2px solid #334155 !important; }
-.leaderboard-panel tr:nth-child(1) td { color: #facc15; font-weight: 800; }
-.leaderboard-panel tr:nth-child(2) td { color: #d1d5db; font-weight: 700; }
-.leaderboard-panel tr:nth-child(3) td { color: #f0b27a; font-weight: 700; }
-
-.idle-list, .preview-list {
-    background: #1e293b;
-    border-radius: var(--card-radius);
-    padding: 0.8rem 1.2rem;
-}
-
-.idle-banner {
-    background: linear-gradient(90deg, #78350f, #92400e);
-    border: 3px solid var(--tourney-yellow);
-    border-radius: var(--card-radius);
-    padding: 0.9rem 1.4rem;
-    text-align: center;
-}
-
-.idle-banner-label {
-    font-size: 1.3rem;
-    font-weight: 800;
-    color: #fde68a;
-    margin-right: 0.8rem;
-}
-
-.idle-pill {
-    background: #fde68a;
-    color: #78350f;
-    font-weight: 700;
-    font-size: 1.1rem;
-}
-
-.section-title {
-    font-size: 1.2rem;
-    font-weight: 800;
-    color: #93c5fd;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 0.6rem;
-}
-
-.pill {
-    display: inline-block;
-    background: #334155;
-    border-radius: 2rem;
-    padding: 0.3rem 0.9rem;
-    margin: 0.15rem;
-    font-size: 1rem;
 }
 
 /* ---------------- Admin ---------------- */
