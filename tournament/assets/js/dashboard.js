@@ -184,7 +184,11 @@ function resultBadge(type) {
  */
 function computeGridDims(matchCount) {
     let columns;
-    if (matchCount <= 2) columns = matchCount;       // 1 or 2 matches: 1 or 2 columns
+    if (currentDisplayMode === 'vertical') {
+        // Portrait screens are narrow — cap at 2 columns however many
+        // matches are running, so cards stay legible.
+        columns = matchCount <= 1 ? 1 : 2;
+    } else if (matchCount <= 2) columns = matchCount;       // 1 or 2 matches: 1 or 2 columns
     else if (matchCount <= 4) columns = 2;            // 3-4 matches: 2 columns
     else columns = 3;                                 // 5+ matches: 3 columns (up to 8 max)
     const rows = Math.max(1, Math.ceil(matchCount / columns));
@@ -269,22 +273,35 @@ function fitLeaderboard(rowCount) {
     const table = panel.querySelector('table');
     if (!table) return;
 
-    const MIN_FONT_SIZE = 7;   // readability floor
-    const MAX_ITERATIONS = 60; // safety guard against infinite loops
+    const MIN_FONT_SIZE = 7;    // readability floor
+    const MAX_FONT_SIZE = 56;   // generous ceiling — lets "leaderboard only" mode
+                                 // actually fill a big panel instead of staying
+                                 // sized for the small side-panel case
+    const MAX_ITERATIONS = 20;
 
-    let fontSize = 19;
-    let rowPadding = 9;
-    panel.style.setProperty('--lb-font-size', fontSize + 'px');
-    panel.style.setProperty('--lb-row-padding', rowPadding + 'px');
-
-    let iterations = 0;
-    while (table.scrollHeight > panel.clientHeight && fontSize > MIN_FONT_SIZE && iterations < MAX_ITERATIONS) {
-        fontSize -= 0.5;
-        rowPadding = Math.max(0, rowPadding - 0.3);
+    function apply(fontSize) {
+        const rowPadding = Math.max(0, fontSize * 0.45 - 3);
         panel.style.setProperty('--lb-font-size', fontSize.toFixed(1) + 'px');
         panel.style.setProperty('--lb-row-padding', rowPadding.toFixed(1) + 'px');
-        iterations++;
     }
+
+    // Binary search for the largest font size that still fits the panel's
+    // real (measured) height without overflowing — measuring the actual
+    // rendered height (rather than a formula) is what makes this correct
+    // for any row count AND any panel size, from the small side-panel on
+    // the normal dashboard up to a full-screen "leaderboard only" panel.
+    let lo = MIN_FONT_SIZE, hi = MAX_FONT_SIZE, best = MIN_FONT_SIZE;
+    for (let i = 0; i < MAX_ITERATIONS && lo <= hi; i++) {
+        const mid = (lo + hi) / 2;
+        apply(mid);
+        if (table.scrollHeight <= panel.clientHeight) {
+            best = mid;
+            lo = mid + 0.5;
+        } else {
+            hi = mid - 0.5;
+        }
+    }
+    apply(best);
 }
 
 function renderPreview(preview) {
@@ -426,17 +443,69 @@ async function refresh() {
  * work correctly on any TV resolution or landscape screen size without
  * scrolling or overflow — see the matching CSS in style.css.
  */
-const STAGE_WIDTH = 1920;
-const STAGE_HEIGHT = 1080;
+/**
+ * Display modes trade off how much of the fixed design canvas maps onto
+ * the real screen. #stage is scaled as one uniform CSS transform, so
+ * shrinking the virtual canvas (width/height below) makes everything
+ * inside it — text, cards, buttons — render proportionally bigger on
+ * the same physical screen, with zero per-element font-size changes.
+ *
+ * "vertical" is a genuinely different (portrait) canvas + layout — see
+ * the .stage-vertical rules in style.css, which stack the matches and
+ * leaderboard columns instead of placing them side by side.
+ */
+const DISPLAY_PROFILES = {
+    regular:  { width: 1920, height: 1080, vertical: false }, // original default, unchanged
+    tv:       { width: 1440, height: 810,  vertical: false }, // ~33% bigger, same layout — for viewing from across a room
+    vertical: { width: 1080, height: 1920, vertical: true },  // portrait-mounted screen
+};
+
+let currentDisplayMode = localStorage.getItem('displayMode') || 'regular';
+if (!DISPLAY_PROFILES[currentDisplayMode]) currentDisplayMode = 'regular';
+let leaderboardOnly = localStorage.getItem('leaderboardOnly') === 'true';
 
 function fitStage() {
     const stage = document.getElementById('stage');
     if (!stage) return;
+    const profile = DISPLAY_PROFILES[currentDisplayMode];
+    stage.style.width = profile.width + 'px';
+    stage.style.height = profile.height + 'px';
     const scale = Math.min(
-        window.innerWidth / STAGE_WIDTH,
-        window.innerHeight / STAGE_HEIGHT
+        window.innerWidth / profile.width,
+        window.innerHeight / profile.height
     );
     stage.style.transform = `scale(${scale})`;
+}
+
+/**
+ * Switches display mode (tv / regular / vertical), persists the choice
+ * per-device (localStorage, same pattern as speechEnabled — each
+ * physical screen remembers its own setting independently), and
+ * re-fits/re-renders for the new canvas size.
+ */
+function applyDisplayMode(mode) {
+    if (!DISPLAY_PROFILES[mode]) return;
+    currentDisplayMode = mode;
+    localStorage.setItem('displayMode', mode);
+    document.getElementById('stage').classList.toggle('stage-vertical', DISPLAY_PROFILES[mode].vertical);
+    document.querySelectorAll('.display-mode-bar [data-mode]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+    });
+    fitStage();
+    renderMatches(currentMatchesCache); // grid column count depends on the mode
+}
+
+/**
+ * Toggles a screen between the normal dashboard and a leaderboard-only
+ * view (matches/idle/commentary hidden, standings fill the whole
+ * screen) — for events running a second dedicated standings screen.
+ */
+function applyLeaderboardOnly(on) {
+    leaderboardOnly = on;
+    localStorage.setItem('leaderboardOnly', on ? 'true' : 'false');
+    document.getElementById('stage').classList.toggle('leaderboard-only-mode', on);
+    document.getElementById('btnLeaderboardOnly').classList.toggle('active', on);
+    fitLeaderboard(document.querySelectorAll('#leaderboardBody tr').length);
 }
 
 /**
@@ -456,8 +525,18 @@ function disablePageScroll() {
 
 document.addEventListener('DOMContentLoaded', () => {
     disablePageScroll();
+    document.getElementById('stage').classList.toggle('stage-vertical', DISPLAY_PROFILES[currentDisplayMode].vertical);
+    document.getElementById('stage').classList.toggle('leaderboard-only-mode', leaderboardOnly);
     fitStage();
     window.addEventListener('resize', fitStage);
+
+    document.querySelectorAll('.display-mode-bar [data-mode]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === currentDisplayMode);
+        btn.addEventListener('click', () => applyDisplayMode(btn.dataset.mode));
+    });
+    const lbBtn = document.getElementById('btnLeaderboardOnly');
+    lbBtn.classList.toggle('active', leaderboardOnly);
+    lbBtn.addEventListener('click', () => applyLeaderboardOnly(!leaderboardOnly));
 
     renderCommentary();
 

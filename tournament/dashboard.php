@@ -18,6 +18,19 @@ function assetVer(string $relPath): string {
 </head>
 <body>
 
+<!-- Small, semi-transparent controls, always rendered at true screen
+     size (not scaled with #stage) so they stay a comfortable click
+     target regardless of display mode. Each physical screen remembers
+     its own choice (localStorage), so a second Pi/TV can be set up
+     differently from the main one. -->
+<div class="display-mode-bar">
+    <button data-mode="tv" title="TV — groter, voor bekijken van afstand">📺 TV</button>
+    <button data-mode="regular" title="Gewoon beeldscherm">🖥️ Monitor</button>
+    <button data-mode="vertical" title="Verticaal gemonteerd scherm">📱 Verticaal</button>
+    <span class="mode-bar-divider"></span>
+    <button id="btnLeaderboardOnly" title="Dit scherm toont alleen het volledige klassement">🏆 Alleen klassement</button>
+</div>
+
 <!--
     The dashboard is drawn onto a fixed 1920x1080 "stage" which
     dashboard.js then scales (via CSS transform) to exactly fit whatever
@@ -57,7 +70,7 @@ function assetVer(string $relPath): string {
                         <tbody id="leaderboardBody"></tbody>
                     </table>
                 </div>
-                <div class="section-title mt-2 d-flex justify-content-between align-items-center">
+                <div class="section-title mt-2 d-flex justify-content-between align-items-center" id="commentaryTitle">
                     Live commentaar
                     <button id="btnToggleSpeech" class="btn btn-sm btn-outline-light" title="Commentaar hardop voorlezen aan/uit">🔇</button>
                 </div>
