@@ -11,9 +11,9 @@
  */
 
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'kvannl_zebra');
-define('DB_USER', 'root');   // <-- set to your cPanel MySQL user
-define('DB_PASS', 'x');          // <-- set to that user's password
+define('DB_NAME', ' ');
+define('DB_USER', ' ');   // <-- set to your cPanel MySQL user
+define('DB_PASS', ' ');          // <-- set to that user's password
 
 // Every table in this project lives in the shared database above with
 // this prefix, e.g. tournament_players, tournament_matches, etc.
