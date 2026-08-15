@@ -210,22 +210,116 @@ function renderMatches(matches) {
     container.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
     container.innerHTML = matches.map(m => {
-        const emoji = STATION_EMOJI[m.station_name] || '🎮';
         const pending = m.result_type === 'pending';
         const cardCls = pending ? 'match-card-clickable' : 'decided-card';
         const clickAttr = pending ? `onclick="openResultOverlay(${m.id})"` : '';
+        return `<div class="match-card ${cardCls}" ${clickAttr}>${buildMatchCardInner(m, pending)}</div>`;
+    }).join('');
+
+    fitMatchCards();
+}
+
+/**
+ * Card content, in one of three layouts (see MATCH_CARD_STYLE below —
+ * temporary while comparing options; the shared fitMatchCards() scaling
+ * mechanism applies to all three identically).
+ */
+const MATCH_CARD_STYLE = 'marquee';
+
+function buildMatchCardInner(m, pending) {
+    const emoji = STATION_EMOJI[m.station_name] || '🎮';
+    const tapHint = pending ? '<div class="tap-hint-card">👉 Tik om de uitslag in te voeren</div>' : '';
+    const judge = `<div class="match-judge"><span class="badge">Jury</span> ${m.judge_name}</div>`;
+
+    if (MATCH_CARD_STYLE === 'marquee') {
         return `
-            <div class="match-card ${cardCls}" ${clickAttr}>
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="match-station"><span class="emoji">${emoji}</span>${m.station_name}</div>
+            <div class="match-card-inner mc-marquee">
+                <div class="mc-marquee-station">
+                    <span class="match-station"><span class="emoji">${emoji}</span>${m.station_name}</span>
                     ${resultBadge(m.result_type)}
                 </div>
-                <div class="match-players">${m.player_a_name}<span class="match-vs">tegen</span>${m.player_b_name}</div>
-                <div class="match-judge"><span class="badge">Jury</span> ${m.judge_name}</div>
-                ${pending ? '<div class="tap-hint-card">👉 Tik om de uitslag in te voeren</div>' : ''}
+                <div class="mc-marquee-players">
+                    <div class="mc-marquee-name">${m.player_a_name}</div>
+                    <div class="mc-marquee-vs">tegen</div>
+                    <div class="mc-marquee-name">${m.player_b_name}</div>
+                </div>
+                ${judge}
+                ${tapHint}
             </div>
         `;
-    }).join('');
+    }
+
+    if (MATCH_CARD_STYLE === 'split') {
+        return `
+            <div class="match-card-inner mc-split">
+                <div class="mc-split-icon">
+                    <div class="mc-split-emoji">${emoji}</div>
+                    <div class="mc-split-station-name">${m.station_name}</div>
+                </div>
+                <div class="mc-split-info">
+                    ${resultBadge(m.result_type)}
+                    <div class="match-players">${m.player_a_name}<span class="match-vs">tegen</span>${m.player_b_name}</div>
+                    ${judge}
+                    ${tapHint}
+                </div>
+            </div>
+        `;
+    }
+
+    // classic (default)
+    return `
+        <div class="match-card-inner">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="match-station"><span class="emoji">${emoji}</span>${m.station_name}</div>
+                ${resultBadge(m.result_type)}
+            </div>
+            <div class="match-players">${m.player_a_name}<span class="match-vs">tegen</span>${m.player_b_name}</div>
+            ${judge}
+            ${tapHint}
+        </div>
+    `;
+}
+
+/**
+ * Scales each match card's content to actually fill the card, instead
+ * of sitting tiny in the middle with empty space around it — the same
+ * "measure the real rendered size, then scale to fit" approach used by
+ * fitStage() (whole dashboard) and fitLeaderboard() (standings table).
+ *
+ * All cards in the round are scaled by the SAME factor (the most
+ * constrained one), so every card reads at a consistent size rather
+ * than each card sizing independently to its own (possibly shorter)
+ * names — a round with 2 matches gets dramatically bigger cards than a
+ * round with 8, and it re-adapts automatically every time the number of
+ * matches changes.
+ */
+const MATCH_CARD_MAX_SCALE = 2.6;
+
+function fitMatchCards() {
+    const cards = document.querySelectorAll('.match-card');
+    if (!cards.length) return;
+
+    cards.forEach(card => {
+        const inner = card.querySelector('.match-card-inner');
+        if (inner) inner.style.transform = 'scale(1)';
+    });
+
+    let minScale = MATCH_CARD_MAX_SCALE;
+    cards.forEach(card => {
+        const inner = card.querySelector('.match-card-inner');
+        if (!inner || !inner.offsetWidth || !inner.offsetHeight) return;
+        const scale = Math.min(
+            card.clientWidth / inner.offsetWidth,
+            card.clientHeight / inner.offsetHeight,
+            MATCH_CARD_MAX_SCALE
+        );
+        if (scale < minScale) minScale = scale;
+    });
+
+    cards.forEach(card => {
+        const inner = card.querySelector('.match-card-inner');
+        if (inner) inner.style.transform = `scale(${minScale})`;
+    });
 }
 
 function renderIdle(idlePlayers) {

@@ -4,6 +4,8 @@ let renamingPlayerId = null;
 let lastPlayersCache = [];
 let renamingStationId = null;
 let lastStationsCache = [];
+let lastAdminData = null;
+const STATIONS_MAX = 10;
 
 function fmtTime(sec) {
     sec = Math.max(0, Math.round(sec));
@@ -110,6 +112,69 @@ async function submitCorrection(result) {
         return;
     }
     refresh();
+}
+
+/**
+ * Advice shown in the reset popup: given the current active player count
+ * and active station count, works out how many kids will sit idle each
+ * round (same math as Scheduler::buildPlan — each match needs 2 players +
+ * 1 judge, matches are capped by both player count and active stations)
+ * and suggests the nearest player count that eliminates idle rounds.
+ */
+function computeStationAdvice(n, activeStations) {
+    const maxStations = Math.min(activeStations, STATIONS_MAX);
+
+    if (n < 3) {
+        return {
+            headline: `${n} actieve deelnemer${n === 1 ? '' : 's'} — nog geen wedstrijd mogelijk (minstens 3 nodig).`,
+            tip: 'Zet meer kinderen actief bij "Deelnemers beheren" voordat je start.',
+        };
+    }
+    if (maxStations < 1) {
+        return {
+            headline: `${n} actieve deelnemers, maar 0 actieve spellen.`,
+            tip: 'Zet minstens één spel actief bij "Spellen beheren" om te kunnen starten.',
+        };
+    }
+
+    const matchCount = Math.min(Math.floor(n / 3), maxStations);
+    const idleCount = n - matchCount * 3;
+    const remainder = n % 3;
+
+    let tip;
+    if (idleCount === 0) {
+        tip = `Perfecte verdeling: alle ${n} deelnemers spelen of jureren elke ronde — niemand zit ooit uit.`;
+    } else {
+        const upNeeded = (3 - remainder) % 3;
+        const downNeeded = remainder;
+        const options = [];
+        if (downNeeded > 0) options.push(`${downNeeded} minder (naar ${n - downNeeded})`);
+        if (upNeeded > 0) options.push(`${upNeeded} meer (naar ${n + upNeeded})`);
+        tip = `Nu zit${idleCount === 1 ? '' : 'ten'} er elke ronde ${idleCount} kind${idleCount === 1 ? '' : 'eren'} uit. ` +
+              `Met ${options.join(' of ')} actieve deelnemers speelt of jureert iedereen elke ronde mee.`;
+    }
+    if (Math.floor(n / 3) > maxStations && maxStations < STATIONS_MAX) {
+        tip += ` Je kunt ook meer spellen actief zetten bij "Spellen beheren" — met ${Math.min(Math.floor(n / 3), STATIONS_MAX)} actieve spellen kunnen meer kinderen tegelijk spelen (nu ${maxStations} actief).`;
+    }
+
+    return {
+        headline: `${n} actieve deelnemers, ${maxStations} actieve spellen → ${matchCount} wedstrijden per ronde, ${idleCount} kind${idleCount === 1 ? '' : 'eren'} rust per ronde.`,
+        tip,
+    };
+}
+
+function renderResetAdvice() {
+    const box = document.getElementById('resetAdviceBox');
+    if (!box) return;
+    if (!lastAdminData) { box.innerHTML = ''; return; }
+    const activeStations = (lastAdminData.stations || []).filter(s => s.active == 1).length;
+    const advice = computeStationAdvice(lastAdminData.active_player_count, activeStations);
+    box.innerHTML = `
+        <div class="reset-advice-box">
+            <div class="reset-advice-title">📊 ${advice.headline}</div>
+            <div class="reset-advice-tip">${advice.tip}</div>
+        </div>
+    `;
 }
 
 function renderControls(data) {
@@ -362,6 +427,7 @@ async function refresh() {
         // revert to an old value right after saving a new one).
         if (myRequestId !== refreshRequestId) return;
 
+        lastAdminData = data;
         renderControls(data);
         renderMatches(data.matches);
         renderIdle(data.idle_players);
@@ -432,7 +498,13 @@ document.addEventListener('DOMContentLoaded', () => {
         refresh();
     });
 
-    // Reset tournament: require typing RESET before the confirm button activates.
+    // Reset tournament: show live "optimal players" advice the moment the
+    // popup opens (uses the most recent refresh() data — no extra request
+    // needed), then require typing RESET before the confirm button activates.
+    const resetModalEl = document.getElementById('resetModal');
+    if (resetModalEl) {
+        resetModalEl.addEventListener('show.bs.modal', renderResetAdvice);
+    }
     const resetConfirmText = document.getElementById('resetConfirmText');
     const btnConfirmReset = document.getElementById('btnConfirmReset');
     resetConfirmText.addEventListener('input', () => {

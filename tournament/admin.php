@@ -20,75 +20,68 @@ function assetVer(string $relPath): string {
 
     <div id="alertBox"></div>
 
-    <div class="control-bar mb-3">
-        <div class="row g-2 align-items-center">
-            <div class="col-md-3">
-                <button id="btnStartTournament" class="btn btn-success w-100">▶️ Toernooi starten</button>
+    <div class="v2-layout">
+        <div class="v2-sidebar">
+            <div class="v2-sidebar-status">
+                Status: <strong id="tournamentStatusLabel">—</strong><br>
+                <span id="roundLabel">Geen ronde actief</span><br>
+                Ontbrekende uitslagen: <span class="badge bg-danger" id="missingCount">0</span>
             </div>
-            <div class="col-md-3">
-                <button id="btnStartNextRound" class="btn btn-primary w-100" disabled>⏭ Volgende ronde starten</button>
-            </div>
-            <div class="col-md-3">
-                <button id="btnPauseResume" class="btn btn-warning w-100" disabled>⏸ Timer pauzeren</button>
-            </div>
-            <div class="col-md-3">
-                <button class="btn btn-outline-light w-100" data-bs-toggle="modal" data-bs-target="#participantsModal">
+
+            <button id="btnStartTournament" class="btn btn-success btn-square-start">
+                <span class="square-emoji">▶️</span>
+                <span class="square-label">Toernooi starten</span>
+            </button>
+
+            <div class="v2-secondary-stack">
+                <button id="btnStartNextRound" class="btn btn-primary" disabled>⏭ Volgende ronde starten</button>
+                <button id="btnPauseResume" class="btn btn-warning" disabled>⏸ Timer pauzeren</button>
+                <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#participantsModal">
                     👤 Deelnemers beheren
                 </button>
-            </div>
-        </div>
-        <div class="row g-2 align-items-center mt-2">
-            <div class="col-md-3">
-                <button class="btn btn-outline-light w-100" data-bs-toggle="modal" data-bs-target="#stationsModal">
+                <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#stationsModal">
                     🎮 Spellen beheren
                 </button>
             </div>
-        </div>
-        <div class="row mt-3">
-            <div class="col-md-3">Status: <strong id="tournamentStatusLabel">—</strong></div>
-            <div class="col-md-3" id="roundLabel">Geen ronde actief</div>
-            <div class="col-md-2">Ontbrekende uitslagen: <span class="badge bg-danger" id="missingCount">0</span></div>
-            <div class="col-md-4">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text">Geplande rondes</span>
-                    <input type="number" min="0" id="totalRoundsInput" class="form-control" placeholder="bv. 5">
-                    <button class="btn btn-outline-light" id="btnSaveTotalRounds">Opslaan</button>
+
+            <div class="v2-settings-block">
+                <div class="v2-settings-field">
+                    <label for="totalRoundsInput">Geplande rondes</label>
+                    <div class="input-group input-group-sm">
+                        <input type="number" min="0" id="totalRoundsInput" class="form-control" placeholder="bv. 5">
+                        <button class="btn btn-outline-light" id="btnSaveTotalRounds">OK</button>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div class="row mt-2">
-            <div class="col-md-6 offset-md-6">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text">Duur evenement (min)</span>
-                    <input type="number" min="1" id="eventMinutesInput" class="form-control" placeholder="bv. 120">
-                    <button class="btn btn-outline-info" id="btnCalculateRounds">Berekenen &amp; opslaan</button>
+                <div class="v2-settings-field">
+                    <label for="eventMinutesInput">Duur evenement (min)</label>
+                    <div class="input-group input-group-sm">
+                        <input type="number" min="1" id="eventMinutesInput" class="form-control" placeholder="bv. 120">
+                        <button class="btn btn-outline-info" id="btnCalculateRounds">Bereken</button>
+                    </div>
                 </div>
                 <div class="form-text text-secondary" id="calculateHint"></div>
-            </div>
-        </div>
-        <div class="row mt-2">
-            <div class="col-md-6 offset-md-6">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text">Ronde duur (min)</span>
-                    <input type="number" min="1" max="60" step="0.5" id="roundMinutesInput" class="form-control" placeholder="bv. 7">
-                    <button class="btn btn-outline-light" id="btnSaveRoundDuration">Opslaan</button>
-                </div>
-                <div class="form-text text-secondary">
-                    Wijzigingen gelden vanaf de volgende ronde — de lopende ronde behoudt zijn huidige tijd.
+                <div class="v2-settings-field mt-2">
+                    <label for="roundMinutesInput">Ronde duur (min)</label>
+                    <div class="input-group input-group-sm">
+                        <input type="number" min="1" max="60" step="0.5" id="roundMinutesInput" class="form-control" placeholder="bv. 7">
+                        <button class="btn btn-outline-light" id="btnSaveRoundDuration">OK</button>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="row mt-3">
-            <div class="col-md-4">
-                <button class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#resetModal">
+
+            <div class="v2-danger-box">
+                <button class="btn btn-outline-danger w-100 btn-sm" data-bs-toggle="modal" data-bs-target="#resetModal">
                     🔄 Toernooi resetten
                 </button>
             </div>
-        </div>
-        <div id="idleBox"></div>
-    </div>
 
-    <div id="adminMatches" class="row g-3"></div>
+            <div id="idleBox"></div>
+        </div>
+
+        <div class="v2-main">
+            <div id="adminMatches" class="row g-3"></div>
+        </div>
+    </div>
 </div>
 
 <!-- Uitslag corrigeren -->
@@ -174,6 +167,7 @@ function assetVer(string $relPath): string {
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
+        <div id="resetAdviceBox"></div>
         <p>
             Dit wist <strong>alle rondes, wedstrijden en uitslagen</strong>. Iedereen begint weer op nul.
             <br>De deelnemerslijst (namen) blijft ongewijzigd.

@@ -174,12 +174,25 @@ body {
     background: #1e293b;
     border-radius: var(--card-radius);
     border: 3px solid #334155;
-    padding: 0.8rem 1rem;
     display: flex;
-    flex-direction: column;
+    align-items: center;
     justify-content: center;
     min-height: 0;
     overflow: hidden;
+}
+
+/* The actual content, at its natural/un-scaled size — dashboard.js's
+   fitMatchCards() measures this and applies a transform:scale() to
+   make it fill however much room the card actually has (1-8 matches
+   share the grid, so that room varies a lot round to round). Scaling a
+   single wrapper (rather than juggling font-size on every child) is
+   the same trick already used for the whole #stage. */
+.match-card-inner {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0.8rem 1rem;
+    transform-origin: center center;
 }
 
 .match-card.repeat-flag {
@@ -195,6 +208,73 @@ body {
 .match-card-clickable:active {
     border-color: var(--tourney-green);
     transform: scale(1.02);
+}
+
+/* ---------------- Match card layout: "marquee" variant ----------------
+   Station is a small label at the top; the two names are the dominant
+   visual element, scoreboard-style. */
+.mc-marquee-station {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+}
+.mc-marquee-station .match-station {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.mc-marquee-station .match-result-badge {
+    flex: 0 0 auto;
+}
+.mc-marquee-players {
+    text-align: center;
+    margin: 0.4rem 0;
+}
+.mc-marquee-name {
+    font-size: 2.1rem;
+    font-weight: 900;
+    line-height: 1.1;
+}
+.mc-marquee-vs {
+    color: #64748b;
+    font-weight: 600;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0.15rem 0;
+}
+
+/* ---------------- Match card layout: "split" variant ----------------
+   Station gets its own icon column (fast to scan "which game is this"
+   across a full grid); names/judge/status live in the right column. */
+.mc-split {
+    flex-direction: row !important;
+    align-items: center;
+    gap: 1rem;
+}
+.mc-split-icon {
+    flex: 0 0 auto;
+    text-align: center;
+    padding-right: 1rem;
+    border-right: 2px solid #334155;
+}
+.mc-split-emoji {
+    font-size: 3.4rem;
+    line-height: 1;
+}
+.mc-split-station-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #93c5fd;
+    margin-top: 0.3rem;
+    white-space: nowrap;
+}
+.mc-split-info {
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .tap-hint-card {
@@ -326,13 +406,6 @@ body {
     text-shadow: 0 0 3px rgba(0,0,0,0.9);
 }
 
-.idle-pill {
-    background: #ffffff;
-    color: #000000;
-    font-weight: 900;
-    font-size: 1.05rem;
-}
-
 .section-title {
     font-size: 1.05rem;
     font-weight: 800;
@@ -350,6 +423,18 @@ body {
     padding: 0.25rem 0.8rem;
     margin: 0.12rem;
     font-size: 0.9rem;
+}
+
+/* Declared AFTER .pill on purpose — same specificity as .pill, so
+   source order decides the tie-break. This needs to win, otherwise
+   .pill's dark background silently overrides it, leaving idle-pill's
+   black text on a dark background (unreadable — this was the actual
+   bug behind the "can't read the idle names" report). */
+.idle-pill {
+    background: #ffffff;
+    color: #000000;
+    font-weight: 900;
+    font-size: 1.05rem;
 }
 
 /* ---------------- Display mode bar (top-right, real screen size, never scaled) ---------------- */
@@ -538,13 +623,111 @@ body {
     padding: 0.5rem 0.8rem;
 }
 
-.control-bar {
+.decided-card { opacity: 0.75; }
+
+/* Reset-popup "optimal players" advice box (shared by all admin layouts) */
+.reset-advice-box {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-left: 4px solid #38bdf8;
+    border-radius: 0.6rem;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1rem;
+}
+.reset-advice-title {
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+}
+.reset-advice-tip {
+    color: #94a3b8;
+    font-size: 0.92rem;
+}
+
+/* Big square primary "start" action, shared by all admin layouts */
+.btn-square-start {
+    aspect-ratio: 1 / 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 800;
+    border-radius: 1.1rem;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+}
+.btn-square-start .square-emoji {
+    font-size: 3rem;
+    line-height: 1;
+}
+.btn-square-start .square-label {
+    font-size: 1.15rem;
+}
+.btn-square-start:disabled {
+    box-shadow: none;
+}
+
+/* ---------------- Admin layout: sidebar control panel ---------------- */
+
+.v2-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 1.25rem;
+}
+.v2-sidebar {
     background: #1e293b;
     border-radius: var(--card-radius);
     padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    align-self: start;
 }
-
-.decided-card { opacity: 0.75; }
+.v2-sidebar-status {
+    background: #0f172a;
+    border-radius: 0.6rem;
+    padding: 0.75rem 0.9rem;
+    font-size: 0.92rem;
+    color: #cbd5e1;
+}
+.v2-sidebar-status strong { color: #f1f5f9; }
+.v2-sidebar .btn-square-start {
+    aspect-ratio: 1 / 1;
+}
+.v2-secondary-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.v2-settings-block {
+    background: #0f172a;
+    border-radius: 0.6rem;
+    padding: 0.75rem 0.9rem;
+}
+.v2-settings-field {
+    margin-bottom: 0.65rem;
+}
+.v2-settings-field:last-child {
+    margin-bottom: 0;
+}
+.v2-settings-field label {
+    display: block;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin-bottom: 0.2rem;
+}
+.v2-settings-field .input-group {
+    flex-wrap: nowrap;
+}
+.v2-danger-box {
+    border: 1px solid #7f1d1d;
+    border-radius: 0.6rem;
+    padding: 0.75rem 0.9rem;
+    background: rgba(127, 29, 29, 0.15);
+}
+.v2-main {
+    min-width: 0;
+}
 
 /* ---------------- Leaderboard page ---------------- */
 
