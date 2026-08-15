@@ -29,8 +29,8 @@ database.
 4. Edit `includes/config.php` and fill in that user's username/password:
    ```php
    define('DB_HOST', 'localhost');
-   define('DB_NAME', 'kvannl_Zebra');
-   define('DB_USER', 'kvannl_your_actual_user');
+   define('DB_NAME', 'xxx');
+   define('DB_USER', ' your_actual_user');
    define('DB_PASS', 'your_actual_password');
    ```
 5. Visit `https://yourdomain/tournament/` (or wherever you uploaded it)
